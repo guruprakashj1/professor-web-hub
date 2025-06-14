@@ -92,33 +92,37 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="text-center mb-16">
-        <h1 className="text-5xl font-bold text-gray-900 mb-6">
+        <h1 className="text-5xl font-bold text-gray-900 mb-6 animate-fade-in">
           Professor's Academic Portal
         </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
           Welcome to my academic portal. Explore my research, courses, and contributions to the field of education.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {sections.map((section) => {
+        {sections.map((section, index) => {
           const IconComponent = section.icon;
           return (
             <Card 
               key={section.id}
-              className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="group cursor-pointer transform transition-all duration-500 hover:scale-105 hover:shadow-xl animate-fade-in hover:rotate-1"
+              style={{ 
+                animationDelay: `${0.4 + index * 0.1}s`, 
+                animationFillMode: 'both' 
+              }}
               onClick={() => setActiveSection(section.id)}
             >
               <CardHeader className="text-center">
-                <div className={`w-16 h-16 rounded-full ${section.color} flex items-center justify-center mx-auto mb-4 transition-colors duration-300`}>
-                  <IconComponent className="w-8 h-8 text-white" />
+                <div className={`w-16 h-16 rounded-full ${section.color} flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12`}>
+                  <IconComponent className="w-8 h-8 text-white transition-transform duration-300 group-hover:scale-110" />
                 </div>
-                <CardTitle className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                <CardTitle className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
                   {section.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-center text-gray-600">
+                <CardDescription className="text-center text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
                   {section.description}
                 </CardDescription>
               </CardContent>
