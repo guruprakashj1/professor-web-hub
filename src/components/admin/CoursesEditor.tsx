@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePortalData } from '@/hooks/usePortalData';
-import { Course } from '@/types/portalData';
+import { Course, Lesson, Resource } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, BookOpen, Link } from 'lucide-react';
 
 const CoursesEditor = () => {
   const { data, createItem, updateItem, deleteItem } = usePortalData();
@@ -117,6 +118,87 @@ const CoursesEditor = () => {
     setFormData({
       ...formData,
       learningOutcomes: formData.learningOutcomes?.filter((_, i) => i !== index) || []
+    });
+  };
+
+  const addLesson = () => {
+    const newLesson: Lesson = {
+      week: (formData.lessons?.length || 0) + 1,
+      title: '',
+      topics: [],
+      resources: []
+    };
+    setFormData({
+      ...formData,
+      lessons: [...(formData.lessons || []), newLesson]
+    });
+  };
+
+  const updateLesson = (index: number, updates: Partial<Lesson>) => {
+    const updatedLessons = [...(formData.lessons || [])];
+    updatedLessons[index] = { ...updatedLessons[index], ...updates };
+    setFormData({
+      ...formData,
+      lessons: updatedLessons
+    });
+  };
+
+  const removeLesson = (index: number) => {
+    setFormData({
+      ...formData,
+      lessons: formData.lessons?.filter((_, i) => i !== index) || []
+    });
+  };
+
+  const addTopicToLesson = (lessonIndex: number, topic: string) => {
+    if (topic.trim()) {
+      const updatedLessons = [...(formData.lessons || [])];
+      updatedLessons[lessonIndex] = {
+        ...updatedLessons[lessonIndex],
+        topics: [...updatedLessons[lessonIndex].topics, topic.trim()]
+      };
+      setFormData({
+        ...formData,
+        lessons: updatedLessons
+      });
+    }
+  };
+
+  const removeTopicFromLesson = (lessonIndex: number, topicIndex: number) => {
+    const updatedLessons = [...(formData.lessons || [])];
+    updatedLessons[lessonIndex] = {
+      ...updatedLessons[lessonIndex],
+      topics: updatedLessons[lessonIndex].topics.filter((_, i) => i !== topicIndex)
+    };
+    setFormData({
+      ...formData,
+      lessons: updatedLessons
+    });
+  };
+
+  const addResourceToLesson = (lessonIndex: number, resource: Resource) => {
+    if (resource.name.trim() && resource.url.trim()) {
+      const updatedLessons = [...(formData.lessons || [])];
+      updatedLessons[lessonIndex] = {
+        ...updatedLessons[lessonIndex],
+        resources: [...updatedLessons[lessonIndex].resources, resource]
+      };
+      setFormData({
+        ...formData,
+        lessons: updatedLessons
+      });
+    }
+  };
+
+  const removeResourceFromLesson = (lessonIndex: number, resourceIndex: number) => {
+    const updatedLessons = [...(formData.lessons || [])];
+    updatedLessons[lessonIndex] = {
+      ...updatedLessons[lessonIndex],
+      resources: updatedLessons[lessonIndex].resources.filter((_, i) => i !== resourceIndex)
+    };
+    setFormData({
+      ...formData,
+      lessons: updatedLessons
     });
   };
 
@@ -294,6 +376,157 @@ const CoursesEditor = () => {
               </div>
             </div>
 
+            {/* Lesson Plans Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center space-x-2">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Lesson Plans</span>
+                </label>
+                <Button onClick={addLesson} size="sm" className="flex items-center space-x-2">
+                  <Plus className="w-4 h-4" />
+                  <span>Add Lesson</span>
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {formData.lessons?.map((lesson, lessonIndex) => (
+                  <Card key={lessonIndex} className="border-l-4 border-l-blue-500">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">Week {lesson.week}</CardTitle>
+                        <Button
+                          onClick={() => removeLesson(lessonIndex)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium">Lesson Title</label>
+                        <Input
+                          value={lesson.title}
+                          onChange={(e) => updateLesson(lessonIndex, { title: e.target.value })}
+                          placeholder="Introduction to Programming Concepts"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Topics</label>
+                        <div className="flex space-x-2 mb-2">
+                          <Input
+                            placeholder="Add topic"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                addTopicToLesson(lessonIndex, (e.target as HTMLInputElement).value);
+                                (e.target as HTMLInputElement).value = '';
+                              }
+                            }}
+                          />
+                          <Button
+                            onClick={(e) => {
+                              const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                              addTopicToLesson(lessonIndex, input.value);
+                              input.value = '';
+                            }}
+                            size="sm"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {lesson.topics.map((topic, topicIndex) => (
+                            <div key={topicIndex} className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                              <span>{topic}</span>
+                              <button
+                                onClick={() => removeTopicFromLesson(lessonIndex, topicIndex)}
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium flex items-center space-x-1">
+                          <Link className="w-4 h-4" />
+                          <span>Learning Resources</span>
+                        </label>
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                            <Input
+                              placeholder="Resource name"
+                              id={`resource-name-${lessonIndex}`}
+                            />
+                            <Input
+                              placeholder="Resource URL"
+                              id={`resource-url-${lessonIndex}`}
+                            />
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="learning">Learning</SelectItem>
+                                <SelectItem value="download">Download</SelectItem>
+                                <SelectItem value="video">Video</SelectItem>
+                                <SelectItem value="document">Document</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              onClick={() => {
+                                const nameInput = document.getElementById(`resource-name-${lessonIndex}`) as HTMLInputElement;
+                                const urlInput = document.getElementById(`resource-url-${lessonIndex}`) as HTMLInputElement;
+                                const typeSelect = document.querySelector(`#resource-name-${lessonIndex}`).closest('.grid').querySelector('select') as HTMLSelectElement;
+                                
+                                if (nameInput.value && urlInput.value) {
+                                  addResourceToLesson(lessonIndex, {
+                                    name: nameInput.value,
+                                    url: urlInput.value,
+                                    type: (typeSelect?.value as Resource['type']) || 'learning'
+                                  });
+                                  nameInput.value = '';
+                                  urlInput.value = '';
+                                }
+                              }}
+                              size="sm"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            {lesson.resources.map((resource, resourceIndex) => (
+                              <div key={resourceIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">{resource.name}</div>
+                                  <div className="text-xs text-gray-600">{resource.url}</div>
+                                  {resource.type && (
+                                    <div className="text-xs text-blue-600">{resource.type}</div>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => removeResourceFromLesson(lessonIndex, resourceIndex)}
+                                  className="text-red-600 hover:text-red-800"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
             <div className="flex space-x-2">
               <Button onClick={handleSave} className="flex items-center space-x-2">
                 <Save className="w-4 h-4" />
@@ -324,6 +557,12 @@ const CoursesEditor = () => {
                   <p className="text-sm text-gray-500 mt-2">
                     {item.schedule.days} • {item.schedule.time} • {item.schedule.location}
                   </p>
+                  {item.lessons && item.lessons.length > 0 && (
+                    <div className="flex items-center space-x-1 mt-2">
+                      <BookOpen className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm text-blue-600">{item.lessons.length} lesson plans</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex space-x-2 ml-4">
                   <Button variant="outline" size="sm" onClick={() => startEdit(item)}>
