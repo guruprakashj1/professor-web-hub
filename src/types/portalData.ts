@@ -34,6 +34,18 @@ export interface Project {
   };
 }
 
+export interface Textbook {
+  title: string;
+  author: string;
+  edition: string;
+  isbn?: string;
+}
+
+export interface CourseLink {
+  name: string;
+  url: string;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -53,6 +65,9 @@ export interface Course {
   lessons: Lesson[];
   online?: boolean;
   industry?: string;
+  textbooks?: Textbook[];
+  softwareTools?: string[];
+  courseLinks?: CourseLink[];
 }
 
 export interface Lesson {
