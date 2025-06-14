@@ -51,6 +51,8 @@ export interface Course {
     location: string;
   };
   lessons: Lesson[];
+  online?: boolean;
+  industry?: string;
 }
 
 export interface Lesson {
@@ -63,6 +65,7 @@ export interface Lesson {
 export interface Resource {
   name: string;
   url: string;
+  type?: 'learning' | 'download' | 'video' | 'document';
 }
 
 export interface ResearchPaper {

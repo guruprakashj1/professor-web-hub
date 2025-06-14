@@ -90,7 +90,9 @@ const CoursesEditor = () => {
         time: '',
         location: ''
       },
-      lessons: []
+      lessons: [],
+      online: false,
+      industry: ''
     });
     setEditingId(null);
     setShowAddForm(true);
@@ -188,6 +190,23 @@ const CoursesEditor = () => {
                   onChange={(e) => setFormData({ ...formData, maxEnrollment: parseInt(e.target.value) || 30 })}
                   placeholder="30"
                 />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Industry Focus</label>
+                <Input
+                  value={formData.industry || ''}
+                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                  placeholder="Technology, Healthcare, Finance, etc."
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="online"
+                  checked={formData.online || false}
+                  onChange={(e) => setFormData({ ...formData, online: e.target.checked })}
+                />
+                <label htmlFor="online" className="text-sm font-medium">Online Course</label>
               </div>
             </div>
             
@@ -296,7 +315,11 @@ const CoursesEditor = () => {
                 <div className="flex-1">
                   <h4 className="font-semibold text-lg">{item.title}</h4>
                   <p className="text-blue-600 font-medium">{item.code}</p>
-                  <p className="text-gray-600">{item.level} • {item.credits} Credits • {item.semester}</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className="text-gray-600">{item.level} • {item.credits} Credits • {item.semester}</span>
+                    {item.online && <span className="text-green-600 text-sm">• Online</span>}
+                    {item.industry && <span className="text-purple-600 text-sm">• {item.industry}</span>}
+                  </div>
                   <p className="text-gray-700 mt-1">{item.description}</p>
                   <p className="text-sm text-gray-500 mt-2">
                     {item.schedule.days} • {item.schedule.time} • {item.schedule.location}

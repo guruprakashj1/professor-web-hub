@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Clock, Calendar, Users, MapPin, BookOpen, ExternalLink, Download } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Users, MapPin, BookOpen, ExternalLink, Download, Globe, Building } from 'lucide-react';
 
 interface CourseDetailProps {
   course: any;
@@ -37,6 +37,18 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
             <Badge variant={course.level === 'Graduate' ? 'default' : 'outline'}>
               {course.level}
             </Badge>
+            {course.online && (
+              <Badge variant="outline" className="flex items-center space-x-1">
+                <Globe className="w-3 h-3" />
+                <span>Online</span>
+              </Badge>
+            )}
+            {course.industry && (
+              <Badge variant="outline" className="flex items-center space-x-1">
+                <Building className="w-3 h-3" />
+                <span>{course.industry}</span>
+              </Badge>
+            )}
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{course.title}</h1>
           <p className="text-xl text-gray-600 mb-6">{course.description}</p>
@@ -62,7 +74,7 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
             <Card>
               <CardContent className="p-4 text-center">
                 <Users className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                <p className="font-semibold text-gray-900">{course.enrollment}/{course.maxEnrollment}</p>
+                <p className="font-semibold text-gray-900">{course.enrollment || 0}/{course.maxEnrollment}</p>
                 <p className="text-sm text-gray-600">Enrolled</p>
               </CardContent>
             </Card>
@@ -70,8 +82,8 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
             <Card>
               <CardContent className="p-4 text-center">
                 <MapPin className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                <p className="font-semibold text-gray-900">{course.schedule.days}</p>
-                <p className="text-sm text-gray-600">{course.schedule.time}</p>
+                <p className="font-semibold text-gray-900">{course.schedule?.days || 'TBD'}</p>
+                <p className="text-sm text-gray-600">{course.schedule?.time || 'TBD'}</p>
               </CardContent>
             </Card>
           </div>
@@ -97,7 +109,7 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
-                    {course.learningOutcomes.map((outcome: string, index: number) => (
+                    {(course.learningOutcomes || []).map((outcome: string, index: number) => (
                       <li key={index} className="flex items-start space-x-3">
                         <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 mt-0.5">
                           {index + 1}
@@ -114,29 +126,47 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Calendar className="w-5 h-5" />
-                    <span>Schedule & Location</span>
+                    <span>Course Information</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Class Schedule</h4>
-                    <p className="text-gray-600">{course.schedule.days} • {course.schedule.time}</p>
+                    <p className="text-gray-600">{course.schedule?.days || 'TBD'} • {course.schedule?.time || 'TBD'}</p>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Location</h4>
-                    <p className="text-gray-600">{course.schedule.location}</p>
+                    <p className="text-gray-600">{course.schedule?.location || 'TBD'}</p>
                   </div>
+                  {course.online && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Delivery Mode</h4>
+                      <p className="text-gray-600 flex items-center space-x-1">
+                        <Globe className="w-4 h-4" />
+                        <span>Online Course</span>
+                      </p>
+                    </div>
+                  )}
+                  {course.industry && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Industry Focus</h4>
+                      <p className="text-gray-600 flex items-center space-x-1">
+                        <Building className="w-4 h-4" />
+                        <span>{course.industry}</span>
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Enrollment Status</h4>
                     <div className="flex items-center space-x-2">
                       <div className="flex-1 bg-gray-200 rounded-full h-2">
                         <div 
                           className="bg-blue-500 h-2 rounded-full"
-                          style={{ width: `${(course.enrollment / course.maxEnrollment) * 100}%` }}
+                          style={{ width: `${((course.enrollment || 0) / course.maxEnrollment) * 100}%` }}
                         ></div>
                       </div>
                       <span className="text-sm text-gray-600">
-                        {course.enrollment}/{course.maxEnrollment}
+                        {course.enrollment || 0}/{course.maxEnrollment}
                       </span>
                     </div>
                   </div>
@@ -146,86 +176,107 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
           </TabsContent>
 
           <TabsContent value="lessons" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Week Navigation */}
-              <div className="lg:col-span-1">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Weekly Lessons</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="space-y-1">
-                      {course.lessons.map((lesson: any) => (
-                        <Button
-                          key={lesson.week}
-                          variant={activeWeek === lesson.week ? "default" : "ghost"}
-                          className="w-full justify-start"
-                          onClick={() => setActiveWeek(lesson.week)}
-                        >
-                          Week {lesson.week}
-                        </Button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+            {course.lessons && course.lessons.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Week Navigation */}
+                <div className="lg:col-span-1">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Weekly Lessons</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="space-y-1">
+                        {course.lessons.map((lesson: any) => (
+                          <Button
+                            key={lesson.week}
+                            variant={activeWeek === lesson.week ? "default" : "ghost"}
+                            className="w-full justify-start"
+                            onClick={() => setActiveWeek(lesson.week)}
+                          >
+                            Week {lesson.week}
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-              {/* Lesson Content */}
-              <div className="lg:col-span-3">
-                {course.lessons
-                  .filter((lesson: any) => lesson.week === activeWeek)
-                  .map((lesson: any) => (
-                    <Card key={lesson.week}>
-                      <CardHeader>
-                        <CardTitle className="text-xl">
-                          Week {lesson.week}: {lesson.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        {/* Topics */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-3">Topics Covered</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {lesson.topics.map((topic: string, index: number) => (
-                              <Badge key={index} variant="outline">
-                                {topic}
-                              </Badge>
-                            ))}
+                {/* Lesson Content */}
+                <div className="lg:col-span-3">
+                  {course.lessons
+                    .filter((lesson: any) => lesson.week === activeWeek)
+                    .map((lesson: any) => (
+                      <Card key={lesson.week}>
+                        <CardHeader>
+                          <CardTitle className="text-xl">
+                            Week {lesson.week}: {lesson.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          {/* Topics */}
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Topics Covered</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {lesson.topics.map((topic: string, index: number) => (
+                                <Badge key={index} variant="outline">
+                                  {topic}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Resources */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-3">Resources & Materials</h4>
-                          <div className="space-y-3">
-                            {lesson.resources.map((resource: any, index: number) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <BookOpen className="w-4 h-4 text-gray-500" />
-                                  <span className="font-medium text-gray-900">{resource.name}</span>
+                          {/* Resources */}
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Learning Materials</h4>
+                            <div className="space-y-3">
+                              {lesson.resources.map((resource: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                  <div className="flex items-center space-x-3">
+                                    <BookOpen className="w-4 h-4 text-gray-500" />
+                                    <div>
+                                      <span className="font-medium text-gray-900">{resource.name}</span>
+                                      {resource.type && (
+                                        <div className="text-xs text-gray-500 mt-1">
+                                          {resource.type}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <Button size="sm" variant="outline" asChild>
+                                      <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                                        <ExternalLink className="w-3 h-3 mr-1" />
+                                        Open
+                                      </a>
+                                    </Button>
+                                    <Button size="sm" variant="outline" asChild>
+                                      <a href={resource.url} download>
+                                        <Download className="w-3 h-3 mr-1" />
+                                        Download
+                                      </a>
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  <Button size="sm" variant="outline">
-                                    <ExternalLink className="w-3 h-3 mr-1" />
-                                    Open
-                                  </Button>
-                                  <Button size="sm" variant="outline">
-                                    <Download className="w-3 h-3 mr-1" />
-                                    Download
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Lesson Plans Available</h3>
+                  <p className="text-gray-600">Lesson plans will be available closer to the course start date.</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="resources" className="space-y-6">

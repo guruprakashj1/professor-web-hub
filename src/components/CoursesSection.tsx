@@ -1,11 +1,14 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Users, BookOpen, Calendar } from 'lucide-react';
 import { usePortalData } from '@/hooks/usePortalData';
+import CourseDetail from './CourseDetail';
 
 const CoursesSection = () => {
   const { data, loading, error } = usePortalData();
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   if (loading) {
     return (
@@ -27,6 +30,16 @@ const CoursesSection = () => {
     );
   }
 
+  // Show course detail if a course is selected
+  if (selectedCourse) {
+    return (
+      <CourseDetail 
+        course={selectedCourse} 
+        onBack={() => setSelectedCourse(null)} 
+      />
+    );
+  }
+
   const courses = data?.courses || [];
 
   return (
@@ -42,7 +55,11 @@ const CoursesSection = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {courses.map((course) => (
-              <Card key={course.id} className="hover:shadow-lg transition-shadow duration-300">
+              <Card 
+                key={course.id} 
+                className="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                onClick={() => setSelectedCourse(course)}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
