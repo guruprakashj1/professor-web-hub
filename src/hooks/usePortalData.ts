@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FileStorageService } from '@/utils/fileStorage';
 import { PortalData } from '@/types/portalData';
 
@@ -10,31 +10,34 @@ export const usePortalData = () => {
   
   const storage = FileStorageService.getInstance();
 
-  const loadData = () => {
+  const loadData = useCallback(() => {
     try {
       setLoading(true);
       const portalData = storage.loadData();
       setData(portalData);
       setError(null);
+      console.log('Data loaded:', portalData);
     } catch (err) {
       setError('Failed to load data');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [storage]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
+    console.log('Refreshing data...');
     loadData();
-  };
+  }, [loadData]);
 
   const createItem = <T extends { id: string }>(section: keyof PortalData, item: Omit<T, 'id'>) => {
     try {
       const newItem = storage.create<T>(section, item);
+      console.log('Item created:', newItem);
       refreshData();
       return newItem;
     } catch (err) {
@@ -46,6 +49,7 @@ export const usePortalData = () => {
   const updateItem = <T extends { id: string }>(section: keyof PortalData, id: string, updates: Partial<T>) => {
     try {
       const updatedItem = storage.update<T>(section, id, updates);
+      console.log('Item updated:', updatedItem);
       refreshData();
       return updatedItem;
     } catch (err) {
@@ -57,6 +61,7 @@ export const usePortalData = () => {
   const deleteItem = (section: keyof PortalData, id: string) => {
     try {
       const success = storage.delete(section, id);
+      console.log('Item deleted:', { section, id, success });
       refreshData();
       return success;
     } catch (err) {
@@ -68,6 +73,7 @@ export const usePortalData = () => {
   const updateAbout = (updates: Partial<PortalData['about']>) => {
     try {
       const updatedAbout = storage.updateAbout(updates);
+      console.log('About updated:', updatedAbout);
       refreshData();
       return updatedAbout;
     } catch (err) {
@@ -88,6 +94,7 @@ export const usePortalData = () => {
   const importData = (jsonString: string) => {
     try {
       storage.importData(jsonString);
+      console.log('Data imported successfully');
       refreshData();
     } catch (err) {
       setError('Failed to import data');
@@ -98,6 +105,7 @@ export const usePortalData = () => {
   const resetData = () => {
     try {
       storage.resetData();
+      console.log('Data reset to defaults');
       refreshData();
     } catch (err) {
       setError('Failed to reset data');

@@ -5,12 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { usePortalData } from '@/hooks/usePortalData';
+import { AboutInfo } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
 import { Save, Plus, X } from 'lucide-react';
 
 const AboutEditor = () => {
   const { data, updateAbout } = usePortalData();
-  const [formData, setFormData] = useState(data?.about || {});
+  const [formData, setFormData] = useState<AboutInfo>(data?.about || {
+    name: '',
+    title: '',
+    bio: '',
+    expertise: [],
+    contact: {
+      email: '',
+      phone: '',
+      office: '',
+      officeHours: ''
+    },
+    socialLinks: {}
+  });
   const [expertiseInput, setExpertiseInput] = useState('');
 
   const handleSave = () => {

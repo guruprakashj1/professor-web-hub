@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePortalData } from '@/hooks/usePortalData';
 import { Settings, Download, Upload, RotateCcw, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import AdminLogin from './AdminLogin';
 import AboutEditor from './admin/AboutEditor';
 import EducationEditor from './admin/EducationEditor';
 import ProjectsEditor from './admin/ProjectsEditor';
@@ -18,8 +19,20 @@ interface AdminPanelProps {
 }
 
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
-  const { data, loading, error, exportData, importData, resetData } = usePortalData();
+  const { data, loading, error, exportData, importData, resetData, refreshData } = usePortalData();
   const [importText, setImportText] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Refresh data when component mounts and when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshData();
+    }
+  }, [isAuthenticated, refreshData]);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
 
   const handleExport = () => {
     try {
@@ -51,6 +64,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
     try {
       importData(importText);
       setImportText('');
+      refreshData(); // Refresh after import
       toast({
         title: "Data Imported",
         description: "Portal data has been imported successfully.",
@@ -68,6 +82,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
     if (window.confirm('Are you sure you want to reset all data to default? This action cannot be undone.')) {
       try {
         resetData();
+        refreshData(); // Refresh after reset
         toast({
           title: "Data Reset",
           description: "Portal data has been reset to default values.",
@@ -81,6 +96,10 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
       }
     }
   };
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-64">Loading...</div>;
@@ -98,9 +117,20 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
             <Settings className="w-6 h-6" />
             <h2 className="text-2xl font-bold">Admin Panel</h2>
           </div>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={() => {
+              refreshData();
+              toast({
+                title: "Data Refreshed",
+                description: "Portal data has been refreshed.",
+              });
+            }}>
+              Refresh
+            </Button>
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-hidden">
