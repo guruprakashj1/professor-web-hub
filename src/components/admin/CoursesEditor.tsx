@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePortalData } from '@/hooks/usePortalData';
 import { Course, Lesson, Resource } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Save, X, BookOpen, Link } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, BookOpen, Link, Play } from 'lucide-react';
 
 const CoursesEditor = () => {
   const { data, createItem, updateItem, deleteItem } = usePortalData();
@@ -202,6 +203,378 @@ const CoursesEditor = () => {
     });
   };
 
+  const isYouTubeUrl = (url: string) => {
+    return url.includes('youtube.com') || url.includes('youtu.be');
+  };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1].split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (url.includes('youtube.com/watch?v=')) {
+      const videoId = url.split('v=')[1].split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return url;
+  };
+
+  const renderOverviewTab = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium">Course Title</label>
+          <Input
+            value={formData.title || ''}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Introduction to Computer Science"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Course Code</label>
+          <Input
+            value={formData.code || ''}
+            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+            placeholder="CS 101"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Level</label>
+          <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value as Course['level'] })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Undergraduate">Undergraduate</SelectItem>
+              <SelectItem value="Graduate">Graduate</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className="text-sm font-medium">Credits</label>
+          <Input
+            type="number"
+            value={formData.credits || 3}
+            onChange={(e) => setFormData({ ...formData, credits: parseInt(e.target.value) || 3 })}
+            placeholder="3"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Semester</label>
+          <Input
+            value={formData.semester || ''}
+            onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+            placeholder="Fall 2024"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Max Enrollment</label>
+          <Input
+            type="number"
+            value={formData.maxEnrollment || 30}
+            onChange={(e) => setFormData({ ...formData, maxEnrollment: parseInt(e.target.value) || 30 })}
+            placeholder="30"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Industry Focus</label>
+          <Input
+            value={formData.industry || ''}
+            onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+            placeholder="Technology, Healthcare, Finance, etc."
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="online"
+            checked={formData.online || false}
+            onChange={(e) => setFormData({ ...formData, online: e.target.checked })}
+          />
+          <label htmlFor="online" className="text-sm font-medium">Online Course</label>
+        </div>
+      </div>
+      
+      <div>
+        <label className="text-sm font-medium">Description</label>
+        <Textarea
+          value={formData.description || ''}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Course description"
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Schedule</label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Input
+              value={formData.schedule?.days || ''}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                schedule: { ...formData.schedule, days: e.target.value }
+              })}
+              placeholder="MWF"
+            />
+          </div>
+          <div>
+            <Input
+              value={formData.schedule?.time || ''}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                schedule: { ...formData.schedule, time: e.target.value }
+              })}
+              placeholder="10:00 AM - 11:00 AM"
+            />
+          </div>
+          <div>
+            <Input
+              value={formData.schedule?.location || ''}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                schedule: { ...formData.schedule, location: e.target.value }
+              })}
+              placeholder="Room 301, CS Building"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Learning Outcomes</label>
+        <div className="flex space-x-2 mb-2">
+          <Input
+            placeholder="Add learning outcome"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                addOutcome((e.target as HTMLInputElement).value);
+                (e.target as HTMLInputElement).value = '';
+              }
+            }}
+          />
+          <Button 
+            onClick={(e) => {
+              const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+              addOutcome(input.value);
+              input.value = '';
+            }}
+            size="sm"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {formData.learningOutcomes?.map((outcome, index) => (
+            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="text-sm">{outcome}</span>
+              <button
+                onClick={() => removeOutcome(index)}
+                className="text-red-600 hover:text-red-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderLessonPlansTab = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium flex items-center space-x-2">
+          <BookOpen className="w-4 h-4" />
+          <span>Lesson Plans</span>
+        </label>
+        <Button onClick={addLesson} size="sm" className="flex items-center space-x-2">
+          <Plus className="w-4 h-4" />
+          <span>Add Lesson</span>
+        </Button>
+      </div>
+      
+      <div className="space-y-4">
+        {formData.lessons?.map((lesson, lessonIndex) => (
+          <Card key={lessonIndex} className="border-l-4 border-l-blue-500">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Week {lesson.week}</CardTitle>
+                <Button
+                  onClick={() => removeLesson(lessonIndex)}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Lesson Title</label>
+                <Input
+                  value={lesson.title}
+                  onChange={(e) => updateLesson(lessonIndex, { title: e.target.value })}
+                  placeholder="Introduction to Programming Concepts"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Topics</label>
+                <div className="flex space-x-2 mb-2">
+                  <Input
+                    placeholder="Add topic"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        addTopicToLesson(lessonIndex, (e.target as HTMLInputElement).value);
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={(e) => {
+                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                      addTopicToLesson(lessonIndex, input.value);
+                      input.value = '';
+                    }}
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {lesson.topics.map((topic, topicIndex) => (
+                    <div key={topicIndex} className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                      <span>{topic}</span>
+                      <button
+                        onClick={() => removeTopicFromLesson(lessonIndex, topicIndex)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderResourcesTab = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium flex items-center space-x-2">
+          <Link className="w-4 h-4" />
+          <span>Learning Resources</span>
+        </label>
+      </div>
+
+      <div className="space-y-4">
+        {formData.lessons?.map((lesson, lessonIndex) => (
+          <Card key={lessonIndex} className="border-l-4 border-l-green-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Week {lesson.week} - {lesson.title || 'Untitled Lesson'}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4">
+                  <Input
+                    placeholder="Resource name"
+                    id={`resource-name-${lessonIndex}`}
+                  />
+                  <Input
+                    placeholder="Resource URL"
+                    id={`resource-url-${lessonIndex}`}
+                  />
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="learning">Learning</SelectItem>
+                      <SelectItem value="download">Download</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
+                      <SelectItem value="document">Document</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={() => {
+                      const nameInput = document.getElementById(`resource-name-${lessonIndex}`) as HTMLInputElement;
+                      const urlInput = document.getElementById(`resource-url-${lessonIndex}`) as HTMLInputElement;
+                      const typeSelect = document.querySelector(`#resource-name-${lessonIndex}`).closest('.grid')?.querySelector('[role="combobox"]') as HTMLElement;
+                      const typeValue = typeSelect?.getAttribute('data-value') || 'learning';
+                      
+                      if (nameInput.value && urlInput.value) {
+                        addResourceToLesson(lessonIndex, {
+                          name: nameInput.value,
+                          url: urlInput.value,
+                          type: typeValue as Resource['type']
+                        });
+                        nameInput.value = '';
+                        urlInput.value = '';
+                      }
+                    }}
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {lesson.resources.map((resource, resourceIndex) => (
+                    <div key={resourceIndex} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm flex items-center space-x-2">
+                            <span>{resource.name}</span>
+                            {resource.type && (
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                {resource.type}
+                              </span>
+                            )}
+                            {isYouTubeUrl(resource.url) && (
+                              <Play className="w-4 h-4 text-red-600" />
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">{resource.url}</div>
+                        </div>
+                        <button
+                          onClick={() => removeResourceFromLesson(lessonIndex, resourceIndex)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      {isYouTubeUrl(resource.url) && (
+                        <div className="mt-3">
+                          <iframe
+                            width="100%"
+                            height="200"
+                            src={getYouTubeEmbedUrl(resource.url)}
+                            title={resource.name}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="rounded-lg"
+                          ></iframe>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -217,317 +590,28 @@ const CoursesEditor = () => {
           <CardHeader>
             <CardTitle>{editingId ? 'Edit Course' : 'Add New Course'}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Course Title</label>
-                <Input
-                  value={formData.title || ''}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Introduction to Computer Science"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Course Code</label>
-                <Input
-                  value={formData.code || ''}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="CS 101"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Level</label>
-                <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value as Course['level'] })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Undergraduate">Undergraduate</SelectItem>
-                    <SelectItem value="Graduate">Graduate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Credits</label>
-                <Input
-                  type="number"
-                  value={formData.credits || 3}
-                  onChange={(e) => setFormData({ ...formData, credits: parseInt(e.target.value) || 3 })}
-                  placeholder="3"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Semester</label>
-                <Input
-                  value={formData.semester || ''}
-                  onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
-                  placeholder="Fall 2024"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Max Enrollment</label>
-                <Input
-                  type="number"
-                  value={formData.maxEnrollment || 30}
-                  onChange={(e) => setFormData({ ...formData, maxEnrollment: parseInt(e.target.value) || 30 })}
-                  placeholder="30"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Industry Focus</label>
-                <Input
-                  value={formData.industry || ''}
-                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                  placeholder="Technology, Healthcare, Finance, etc."
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="online"
-                  checked={formData.online || false}
-                  onChange={(e) => setFormData({ ...formData, online: e.target.checked })}
-                />
-                <label htmlFor="online" className="text-sm font-medium">Online Course</label>
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium">Description</label>
-              <Textarea
-                value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Course description"
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Schedule</label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Input
-                    value={formData.schedule?.days || ''}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      schedule: { ...formData.schedule, days: e.target.value }
-                    })}
-                    placeholder="MWF"
-                  />
-                </div>
-                <div>
-                  <Input
-                    value={formData.schedule?.time || ''}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      schedule: { ...formData.schedule, time: e.target.value }
-                    })}
-                    placeholder="10:00 AM - 11:00 AM"
-                  />
-                </div>
-                <div>
-                  <Input
-                    value={formData.schedule?.location || ''}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      schedule: { ...formData.schedule, location: e.target.value }
-                    })}
-                    placeholder="Room 301, CS Building"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Learning Outcomes</label>
-              <div className="flex space-x-2 mb-2">
-                <Input
-                  placeholder="Add learning outcome"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      addOutcome((e.target as HTMLInputElement).value);
-                      (e.target as HTMLInputElement).value = '';
-                    }
-                  }}
-                />
-                <Button 
-                  onClick={(e) => {
-                    const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                    addOutcome(input.value);
-                    input.value = '';
-                  }}
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {formData.learningOutcomes?.map((outcome, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm">{outcome}</span>
-                    <button
-                      onClick={() => removeOutcome(index)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Lesson Plans Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium flex items-center space-x-2">
-                  <BookOpen className="w-4 h-4" />
-                  <span>Lesson Plans</span>
-                </label>
-                <Button onClick={addLesson} size="sm" className="flex items-center space-x-2">
-                  <Plus className="w-4 h-4" />
-                  <span>Add Lesson</span>
-                </Button>
-              </div>
+          <CardContent>
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="lessons">Lesson Plans</TabsTrigger>
+                <TabsTrigger value="resources">Resources</TabsTrigger>
+              </TabsList>
               
-              <div className="space-y-4">
-                {formData.lessons?.map((lesson, lessonIndex) => (
-                  <Card key={lessonIndex} className="border-l-4 border-l-blue-500">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">Week {lesson.week}</CardTitle>
-                        <Button
-                          onClick={() => removeLesson(lessonIndex)}
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium">Lesson Title</label>
-                        <Input
-                          value={lesson.title}
-                          onChange={(e) => updateLesson(lessonIndex, { title: e.target.value })}
-                          placeholder="Introduction to Programming Concepts"
-                        />
-                      </div>
+              <TabsContent value="overview" className="mt-6">
+                {renderOverviewTab()}
+              </TabsContent>
+              
+              <TabsContent value="lessons" className="mt-6">
+                {renderLessonPlansTab()}
+              </TabsContent>
+              
+              <TabsContent value="resources" className="mt-6">
+                {renderResourcesTab()}
+              </TabsContent>
+            </Tabs>
 
-                      <div>
-                        <label className="text-sm font-medium">Topics</label>
-                        <div className="flex space-x-2 mb-2">
-                          <Input
-                            placeholder="Add topic"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                addTopicToLesson(lessonIndex, (e.target as HTMLInputElement).value);
-                                (e.target as HTMLInputElement).value = '';
-                              }
-                            }}
-                          />
-                          <Button
-                            onClick={(e) => {
-                              const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                              addTopicToLesson(lessonIndex, input.value);
-                              input.value = '';
-                            }}
-                            size="sm"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {lesson.topics.map((topic, topicIndex) => (
-                            <div key={topicIndex} className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                              <span>{topic}</span>
-                              <button
-                                onClick={() => removeTopicFromLesson(lessonIndex, topicIndex)}
-                                className="text-blue-600 hover:text-blue-800"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium flex items-center space-x-1">
-                          <Link className="w-4 h-4" />
-                          <span>Learning Resources</span>
-                        </label>
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-                            <Input
-                              placeholder="Resource name"
-                              id={`resource-name-${lessonIndex}`}
-                            />
-                            <Input
-                              placeholder="Resource URL"
-                              id={`resource-url-${lessonIndex}`}
-                            />
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="learning">Learning</SelectItem>
-                                <SelectItem value="download">Download</SelectItem>
-                                <SelectItem value="video">Video</SelectItem>
-                                <SelectItem value="document">Document</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              onClick={() => {
-                                const nameInput = document.getElementById(`resource-name-${lessonIndex}`) as HTMLInputElement;
-                                const urlInput = document.getElementById(`resource-url-${lessonIndex}`) as HTMLInputElement;
-                                const typeSelect = document.querySelector(`#resource-name-${lessonIndex}`).closest('.grid').querySelector('select') as HTMLSelectElement;
-                                
-                                if (nameInput.value && urlInput.value) {
-                                  addResourceToLesson(lessonIndex, {
-                                    name: nameInput.value,
-                                    url: urlInput.value,
-                                    type: (typeSelect?.value as Resource['type']) || 'learning'
-                                  });
-                                  nameInput.value = '';
-                                  urlInput.value = '';
-                                }
-                              }}
-                              size="sm"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          <div className="space-y-2">
-                            {lesson.resources.map((resource, resourceIndex) => (
-                              <div key={resourceIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <div className="flex-1">
-                                  <div className="font-medium text-sm">{resource.name}</div>
-                                  <div className="text-xs text-gray-600">{resource.url}</div>
-                                  {resource.type && (
-                                    <div className="text-xs text-blue-600">{resource.type}</div>
-                                  )}
-                                </div>
-                                <button
-                                  onClick={() => removeResourceFromLesson(lessonIndex, resourceIndex)}
-                                  className="text-red-600 hover:text-red-800"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 mt-6 pt-4 border-t">
               <Button onClick={handleSave} className="flex items-center space-x-2">
                 <Save className="w-4 h-4" />
                 <span>Save</span>
