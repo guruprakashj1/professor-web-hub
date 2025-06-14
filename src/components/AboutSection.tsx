@@ -1,8 +1,43 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Globe, ExternalLink } from 'lucide-react';
+import { usePortalData } from '@/hooks/usePortalData';
 
 const AboutSection = () => {
+  const { data, loading, error } = usePortalData();
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-red-600">Error loading data: {error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  const about = data?.about;
+
+  if (!about) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-600">No about information available</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-4xl mx-auto">
@@ -14,28 +49,48 @@ const AboutSection = () => {
             <Card className="sticky top-24">
               <CardHeader className="text-center">
                 <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-4xl font-bold text-white">P</span>
+                  <span className="text-4xl font-bold text-white">
+                    {about.name ? about.name.charAt(0).toUpperCase() : 'P'}
+                  </span>
                 </div>
-                <CardTitle className="text-2xl">Professor Name</CardTitle>
-                <p className="text-gray-600">Department of Computer Science</p>
+                <CardTitle className="text-2xl">{about.name || 'Professor Name'}</CardTitle>
+                <p className="text-gray-600">{about.title || 'Academic Title'}</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <Mail className="w-4 h-4" />
-                  <span className="text-sm">professor@university.edu</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <Phone className="w-4 h-4" />
-                  <span className="text-sm">+1 (555) 123-4567</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm">University Campus, Room 305</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <Globe className="w-4 h-4" />
-                  <span className="text-sm">www.professorwebsite.com</span>
-                </div>
+                {about.contact?.email && (
+                  <div className="flex items-center space-x-3 text-gray-600">
+                    <Mail className="w-4 h-4" />
+                    <span className="text-sm">{about.contact.email}</span>
+                  </div>
+                )}
+                {about.contact?.phone && (
+                  <div className="flex items-center space-x-3 text-gray-600">
+                    <Phone className="w-4 h-4" />
+                    <span className="text-sm">{about.contact.phone}</span>
+                  </div>
+                )}
+                {about.contact?.office && (
+                  <div className="flex items-center space-x-3 text-gray-600">
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm">{about.contact.office}</span>
+                  </div>
+                )}
+                {about.socialLinks && Object.entries(about.socialLinks).map(([platform, url]) => (
+                  url && (
+                    <div key={platform} className="flex items-center space-x-3 text-gray-600">
+                      <Globe className="w-4 h-4" />
+                      <a 
+                        href={url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm hover:text-blue-600 flex items-center space-x-1"
+                      >
+                        <span>{platform}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )
+                ))}
               </CardContent>
             </Card>
           </div>
@@ -47,64 +102,44 @@ const AboutSection = () => {
                 <CardTitle className="text-xl">Biography</CardTitle>
               </CardHeader>
               <CardContent className="prose max-w-none">
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  I am a passionate educator and researcher with over 15 years of experience in computer science and software engineering. My research interests include artificial intelligence, machine learning, and educational technology.
-                </p>
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  Throughout my career, I have supervised numerous graduate students, published extensively in peer-reviewed journals, and collaborated with industry partners to bridge the gap between academic research and practical applications.
-                </p>
-                <p className="text-gray-700 leading-relaxed">
-                  I believe in fostering an inclusive learning environment where students are encouraged to think critically, explore innovative solutions, and develop both technical and soft skills essential for their future careers.
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {about.bio || 'No biography available.'}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Research Interests</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    'Artificial Intelligence',
-                    'Machine Learning',
-                    'Educational Technology',
-                    'Software Engineering',
-                    'Data Science',
-                    'Computer Vision',
-                    'Natural Language Processing'
-                  ].map((interest) => (
-                    <span
-                      key={interest}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                    >
-                      {interest}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {about.expertise && about.expertise.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Areas of Expertise</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {about.expertise.map((expertise, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                      >
+                        {expertise}
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Office Hours</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Monday - Wednesday</span>
-                    <span className="text-gray-600">2:00 PM - 4:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Friday</span>
-                    <span className="text-gray-600">10:00 AM - 12:00 PM</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-4">
-                    Or by appointment. Please email me to schedule a meeting outside of regular office hours.
+            {about.contact?.officeHours && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Office Hours</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {about.contact.officeHours}
                   </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
