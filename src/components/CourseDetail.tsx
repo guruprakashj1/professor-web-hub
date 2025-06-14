@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Clock, Calendar, Users, MapPin, BookOpen, ExternalLink, Download, Globe, Building } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Users, MapPin, BookOpen, ExternalLink, Download, Globe, Building, Play } from 'lucide-react';
 
 interface CourseDetailProps {
   course: any;
@@ -13,6 +13,22 @@ interface CourseDetailProps {
 
 const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
   const [activeWeek, setActiveWeek] = useState(1);
+
+  const isYouTubeUrl = (url: string) => {
+    return url.includes('youtube.com') || url.includes('youtu.be');
+  };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1].split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (url.includes('youtube.com/watch?v=')) {
+      const videoId = url.split('v=')[1].split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return url;
+  };
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -225,40 +241,58 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
                             </div>
                           </div>
 
-                          {/* Resources */}
+                          {/* Resources with inline video */}
                           <div>
                             <h4 className="font-semibold text-gray-900 mb-3">Learning Materials</h4>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                               {lesson.resources.map((resource: any, index: number) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  <div className="flex items-center space-x-3">
-                                    <BookOpen className="w-4 h-4 text-gray-500" />
-                                    <div>
-                                      <span className="font-medium text-gray-900">{resource.name}</span>
-                                      {resource.type && (
-                                        <div className="text-xs text-gray-500 mt-1">
-                                          {resource.type}
-                                        </div>
-                                      )}
+                                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                      <div className="font-medium text-gray-900 flex items-center space-x-2">
+                                        <span>{resource.name}</span>
+                                        {resource.type && (
+                                          <Badge variant="outline" className="text-xs">
+                                            {resource.type}
+                                          </Badge>
+                                        )}
+                                        {isYouTubeUrl(resource.url) && (
+                                          <Play className="w-4 h-4 text-red-600" />
+                                        )}
+                                      </div>
+                                      <div className="text-sm text-gray-600 mt-1">{resource.url}</div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Button size="sm" variant="outline" asChild>
+                                        <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                                          <ExternalLink className="w-3 h-3 mr-1" />
+                                          Open
+                                        </a>
+                                      </Button>
+                                      <Button size="sm" variant="outline" asChild>
+                                        <a href={resource.url} download>
+                                          <Download className="w-3 h-3 mr-1" />
+                                          Download
+                                        </a>
+                                      </Button>
                                     </div>
                                   </div>
-                                  <div className="flex items-center space-x-2">
-                                    <Button size="sm" variant="outline" asChild>
-                                      <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="w-3 h-3 mr-1" />
-                                        Open
-                                      </a>
-                                    </Button>
-                                    <Button size="sm" variant="outline" asChild>
-                                      <a href={resource.url} download>
-                                        <Download className="w-3 h-3 mr-1" />
-                                        Download
-                                      </a>
-                                    </Button>
-                                  </div>
+                                  
+                                  {/* Inline YouTube Video */}
+                                  {isYouTubeUrl(resource.url) && (
+                                    <div className="mt-3">
+                                      <iframe
+                                        width="100%"
+                                        height="300"
+                                        src={getYouTubeEmbedUrl(resource.url)}
+                                        title={resource.name}
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        className="rounded-lg"
+                                      ></iframe>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -287,11 +321,23 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
                   <CardTitle className="text-lg">Required Textbooks</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="p-3 border border-gray-200 rounded-lg">
-                    <h4 className="font-medium text-gray-900">Introduction to Algorithms</h4>
-                    <p className="text-sm text-gray-600">Cormen, Leiserson, Rivest, Stein</p>
-                    <p className="text-sm text-gray-500">4th Edition</p>
-                  </div>
+                  {(course.textbooks || []).map((textbook: any, index: number) => (
+                    <div key={index} className="p-3 border border-gray-200 rounded-lg">
+                      <h4 className="font-medium text-gray-900">{textbook.title}</h4>
+                      <p className="text-sm text-gray-600">{textbook.author}</p>
+                      <p className="text-sm text-gray-500">{textbook.edition}</p>
+                      {textbook.isbn && (
+                        <p className="text-xs text-gray-400">ISBN: {textbook.isbn}</p>
+                      )}
+                    </div>
+                  ))}
+                  {(!course.textbooks || course.textbooks.length === 0) && (
+                    <div className="p-3 border border-gray-200 rounded-lg">
+                      <h4 className="font-medium text-gray-900">Introduction to Algorithms</h4>
+                      <p className="text-sm text-gray-600">Cormen, Leiserson, Rivest, Stein</p>
+                      <p className="text-sm text-gray-500">4th Edition</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -302,10 +348,9 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="space-y-2">
-                    <Badge variant="outline">Python 3.9+</Badge>
-                    <Badge variant="outline">Jupyter Notebook</Badge>
-                    <Badge variant="outline">Git/GitHub</Badge>
-                    <Badge variant="outline">VS Code</Badge>
+                    {(course.softwareTools || ['Python 3.9+', 'Jupyter Notebook', 'Git/GitHub', 'VS Code']).map((tool: string, index: number) => (
+                      <Badge key={index} variant="outline">{tool}</Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -316,18 +361,30 @@ const CourseDetail = ({ course, onBack }: CourseDetailProps) => {
                   <CardTitle className="text-lg">Course Links</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Course Syllabus
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Assignment Portal
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Discussion Forum
-                  </Button>
+                  {(course.courseLinks || []).map((link: any, index: number) => (
+                    <Button key={index} variant="outline" className="w-full justify-start" asChild>
+                      <a href={link.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        {link.name}
+                      </a>
+                    </Button>
+                  ))}
+                  {(!course.courseLinks || course.courseLinks.length === 0) && (
+                    <>
+                      <Button variant="outline" className="w-full justify-start">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Course Syllabus
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Assignment Portal
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Discussion Forum
+                      </Button>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>

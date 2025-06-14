@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePortalData } from '@/hooks/usePortalData';
 import { Course, Lesson, Resource } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Save, X, BookOpen, Link, Play } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, BookOpen, Link, Play, ExternalLink } from 'lucide-react';
 
 const CoursesEditor = () => {
   const { data, createItem, updateItem, deleteItem } = usePortalData();
@@ -94,7 +93,10 @@ const CoursesEditor = () => {
       },
       lessons: [],
       online: false,
-      industry: ''
+      industry: '',
+      textbooks: [],
+      softwareTools: [],
+      courseLinks: []
     });
     setEditingId(null);
     setShowAddForm(true);
@@ -200,6 +202,78 @@ const CoursesEditor = () => {
     setFormData({
       ...formData,
       lessons: updatedLessons
+    });
+  };
+
+  const addTextbook = () => {
+    const newTextbook = {
+      title: '',
+      author: '',
+      edition: '',
+      isbn: ''
+    };
+    setFormData({
+      ...formData,
+      textbooks: [...(formData.textbooks || []), newTextbook]
+    });
+  };
+
+  const updateTextbook = (index: number, updates: any) => {
+    const updatedTextbooks = [...(formData.textbooks || [])];
+    updatedTextbooks[index] = { ...updatedTextbooks[index], ...updates };
+    setFormData({
+      ...formData,
+      textbooks: updatedTextbooks
+    });
+  };
+
+  const removeTextbook = (index: number) => {
+    setFormData({
+      ...formData,
+      textbooks: formData.textbooks?.filter((_, i) => i !== index) || []
+    });
+  };
+
+  const addSoftwareTool = (tool: string) => {
+    if (tool.trim()) {
+      setFormData({
+        ...formData,
+        softwareTools: [...(formData.softwareTools || []), tool.trim()]
+      });
+    }
+  };
+
+  const removeSoftwareTool = (index: number) => {
+    setFormData({
+      ...formData,
+      softwareTools: formData.softwareTools?.filter((_, i) => i !== index) || []
+    });
+  };
+
+  const addCourseLink = () => {
+    const newLink = {
+      name: '',
+      url: ''
+    };
+    setFormData({
+      ...formData,
+      courseLinks: [...(formData.courseLinks || []), newLink]
+    });
+  };
+
+  const updateCourseLink = (index: number, updates: any) => {
+    const updatedLinks = [...(formData.courseLinks || [])];
+    updatedLinks[index] = { ...updatedLinks[index], ...updates };
+    setFormData({
+      ...formData,
+      courseLinks: updatedLinks
+    });
+  };
+
+  const removeCourseLink = (index: number) => {
+    setFormData({
+      ...formData,
+      courseLinks: formData.courseLinks?.filter((_, i) => i !== index) || []
     });
   };
 
@@ -464,6 +538,153 @@ const CoursesEditor = () => {
     </div>
   );
 
+  const renderCourseResourcesTab = () => (
+    <div className="space-y-6">
+      {/* Textbooks Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Required Textbooks</CardTitle>
+            <Button onClick={addTextbook} size="sm" className="flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>Add Textbook</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(formData.textbooks || []).map((textbook: any, index: number) => (
+            <div key={index} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Textbook {index + 1}</h4>
+                <Button
+                  onClick={() => removeTextbook(index)}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input
+                  placeholder="Book Title"
+                  value={textbook.title || ''}
+                  onChange={(e) => updateTextbook(index, { title: e.target.value })}
+                />
+                <Input
+                  placeholder="Author(s)"
+                  value={textbook.author || ''}
+                  onChange={(e) => updateTextbook(index, { author: e.target.value })}
+                />
+                <Input
+                  placeholder="Edition"
+                  value={textbook.edition || ''}
+                  onChange={(e) => updateTextbook(index, { edition: e.target.value })}
+                />
+                <Input
+                  placeholder="ISBN (optional)"
+                  value={textbook.isbn || ''}
+                  onChange={(e) => updateTextbook(index, { isbn: e.target.value })}
+                />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Software Tools Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Software Tools</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Add software tool"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  addSoftwareTool((e.target as HTMLInputElement).value);
+                  (e.target as HTMLInputElement).value = '';
+                }
+              }}
+            />
+            <Button 
+              onClick={(e) => {
+                const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                addSoftwareTool(input.value);
+                input.value = '';
+              }}
+              size="sm"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(formData.softwareTools || []).map((tool: string, index: number) => (
+              <div key={index} className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                <span>{tool}</span>
+                <button
+                  onClick={() => removeSoftwareTool(index)}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Course Links Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Course Links</CardTitle>
+            <Button onClick={addCourseLink} size="sm" className="flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>Add Link</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(formData.courseLinks || []).map((link: any, index: number) => (
+            <div key={index} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Link {index + 1}</h4>
+                <Button
+                  onClick={() => removeCourseLink(index)}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input
+                  placeholder="Link Name"
+                  value={link.name || ''}
+                  onChange={(e) => updateCourseLink(index, { name: e.target.value })}
+                />
+                <Input
+                  placeholder="URL"
+                  value={link.url || ''}
+                  onChange={(e) => updateCourseLink(index, { url: e.target.value })}
+                />
+              </div>
+              {link.url && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <ExternalLink className="w-4 h-4" />
+                  <span>{link.url}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   const renderResourcesTab = () => (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -592,10 +813,11 @@ const CoursesEditor = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="lessons">Lesson Plans</TabsTrigger>
                 <TabsTrigger value="resources">Resources</TabsTrigger>
+                <TabsTrigger value="course-resources">Course Resources</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="mt-6">
@@ -608,6 +830,10 @@ const CoursesEditor = () => {
               
               <TabsContent value="resources" className="mt-6">
                 {renderResourcesTab()}
+              </TabsContent>
+              
+              <TabsContent value="course-resources" className="mt-6">
+                {renderCourseResourcesTab()}
               </TabsContent>
             </Tabs>
 
