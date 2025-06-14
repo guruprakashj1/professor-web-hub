@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +13,16 @@ const ResearchEditor = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState<Partial<ResearchPaper>>({});
+
+  // Sync form data when editing an existing item
+  useEffect(() => {
+    if (editingId && data?.research) {
+      const item = data.research.find(paper => paper.id === editingId);
+      if (item) {
+        setFormData(item);
+      }
+    }
+  }, [editingId, data?.research]);
 
   const handleSave = () => {
     try {

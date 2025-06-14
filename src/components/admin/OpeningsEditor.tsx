@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +14,16 @@ const OpeningsEditor = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState<Partial<ProjectOpening>>({});
+
+  // Sync form data when editing an existing item
+  useEffect(() => {
+    if (editingId && data?.openings) {
+      const item = data.openings.find(opening => opening.id === editingId);
+      if (item) {
+        setFormData(item);
+      }
+    }
+  }, [editingId, data?.openings]);
 
   const handleSave = () => {
     try {

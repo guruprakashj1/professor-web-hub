@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Save, Plus, X } from 'lucide-react';
 
 const AboutEditor = () => {
   const { data, updateAbout } = usePortalData();
-  const [formData, setFormData] = useState<AboutInfo>(data?.about || {
+  const [formData, setFormData] = useState<AboutInfo>({
     name: '',
     title: '',
     bio: '',
@@ -25,6 +25,13 @@ const AboutEditor = () => {
     socialLinks: {}
   });
   const [expertiseInput, setExpertiseInput] = useState('');
+
+  // Sync form data with loaded portal data
+  useEffect(() => {
+    if (data?.about) {
+      setFormData(data.about);
+    }
+  }, [data?.about]);
 
   const handleSave = () => {
     try {
