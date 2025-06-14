@@ -112,6 +112,7 @@ export interface AboutInfo {
   title: string;
   bio: string;
   expertise: string[];
+  profilePicture?: string;
   contact: {
     email: string;
     phone?: string;

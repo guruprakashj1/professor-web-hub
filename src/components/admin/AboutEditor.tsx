@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePortalData } from '@/hooks/usePortalData';
 import { AboutInfo } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
-import { Save, Plus, X } from 'lucide-react';
+import { Save, Plus, X, Upload, User } from 'lucide-react';
 
 const AboutEditor = () => {
   const { data, updateAbout } = usePortalData();
@@ -25,6 +25,7 @@ const AboutEditor = () => {
     socialLinks: {}
   });
   const [expertiseInput, setExpertiseInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync form data with loaded portal data
   useEffect(() => {
@@ -49,6 +50,39 @@ const AboutEditor = () => {
     }
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string;
+          setFormData({
+            ...formData,
+            profilePicture: imageUrl
+          });
+        };
+        reader.readAsDataURL(file);
+      } else {
+        toast({
+          title: "Invalid File",
+          description: "Please select an image file.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const removeProfilePicture = () => {
+    setFormData({
+      ...formData,
+      profilePicture: undefined
+    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const addExpertise = () => {
     if (expertiseInput.trim()) {
       setFormData({
@@ -68,6 +102,54 @@ const AboutEditor = () => {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Picture</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-4">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+              {formData.profilePicture ? (
+                <img 
+                  src={formData.profilePicture} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-8 h-8 text-gray-400" />
+              )}
+            </div>
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button 
+                onClick={() => fileInputRef.current?.click()} 
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Upload Picture</span>
+              </Button>
+              {formData.profilePicture && (
+                <Button 
+                  onClick={removeProfilePicture} 
+                  variant="outline"
+                  className="flex items-center space-x-2 text-red-600 hover:text-red-700"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Remove</span>
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>About Information</CardTitle>

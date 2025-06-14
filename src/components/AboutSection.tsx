@@ -48,10 +48,20 @@ const AboutSection = () => {
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardHeader className="text-center">
-                <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-4xl font-bold text-white">
-                    {about.name ? about.name.charAt(0).toUpperCase() : 'P'}
-                  </span>
+                <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
+                  {about.profilePicture ? (
+                    <img 
+                      src={about.profilePicture} 
+                      alt={about.name || 'Profile'} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <span className="text-4xl font-bold text-white">
+                        {about.name ? about.name.charAt(0).toUpperCase() : 'P'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <CardTitle className="text-2xl">{about.name || 'Professor Name'}</CardTitle>
                 <p className="text-gray-600">{about.title || 'Academic Title'}</p>
