@@ -6,12 +6,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePortalData } from '@/hooks/usePortalData';
 import { ResearchPaper } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { BibTeXParser } from '@/utils/bibtexParser';
+import { Plus, Edit, Trash2, Save, X, Upload, FileText } from 'lucide-react';
 
 const ResearchEditor = () => {
   const { data, createItem, updateItem, deleteItem } = usePortalData();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [formData, setFormData] = useState<Partial<ResearchPaper>>({});
 
   // Sync form data when editing an existing item
@@ -67,6 +69,67 @@ const ResearchEditor = () => {
     }
   };
 
+  const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.bib')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a .bib file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const papers = BibTeXParser.parse(content);
+
+        if (papers.length === 0) {
+          toast({
+            title: "No Papers Found",
+            description: "No valid research papers found in the BibTeX file.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Create all papers
+        let successCount = 0;
+        papers.forEach(paper => {
+          try {
+            createItem('research', paper);
+            successCount++;
+          } catch (err) {
+            console.error('Failed to create paper:', err);
+          }
+        });
+
+        toast({
+          title: "Bulk Upload Complete",
+          description: `Successfully uploaded ${successCount} out of ${papers.length} research papers.`,
+        });
+
+        setShowBulkUpload(false);
+        // Reset file input
+        if (event.target) {
+          event.target.value = '';
+        }
+      } catch (err) {
+        toast({
+          title: "Upload Failed",
+          description: "Failed to parse BibTeX file. Please check the file format.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   const startEdit = (item: ResearchPaper) => {
     setFormData(item);
     setEditingId(item.id);
@@ -114,11 +177,62 @@ const ResearchEditor = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Research Papers Management</h3>
-        <Button onClick={startAdd} className="flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Add Research Paper</span>
-        </Button>
+        <div className="flex space-x-2">
+          <Button onClick={() => setShowBulkUpload(true)} variant="outline" className="flex items-center space-x-2">
+            <Upload className="w-4 h-4" />
+            <span>Bulk Upload (BibTeX)</span>
+          </Button>
+          <Button onClick={startAdd} className="flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>Add Research Paper</span>
+          </Button>
+        </div>
       </div>
+
+      {showBulkUpload && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="w-5 h-5" />
+              <span>Bulk Upload Research Papers</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-600 mb-4">
+                Upload a BibTeX (.bib) file to automatically import multiple research papers. 
+                The system will parse the file and create entries for all valid papers found.
+              </p>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept=".bib"
+                  onChange={handleBulkUpload}
+                  className="hidden"
+                  id="bibtex-upload"
+                />
+                <label
+                  htmlFor="bibtex-upload"
+                  className="cursor-pointer flex flex-col items-center space-y-2"
+                >
+                  <Upload className="w-8 h-8 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700">
+                    Click to upload BibTeX file
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Supports .bib files
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => setShowBulkUpload(false)}>
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {(showAddForm || editingId) && (
         <Card>
