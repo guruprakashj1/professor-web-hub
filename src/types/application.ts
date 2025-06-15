@@ -8,6 +8,7 @@ export interface ApplicationData {
   email: string;
   qualifications: string;
   portfolioUrl: string;
+  resumeUrl?: string;
   resumeFileName: string;
   resumePath: string;
   applicationDate: string;
