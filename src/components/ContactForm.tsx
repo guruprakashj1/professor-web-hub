@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { FirebaseContactStorageService } from '@/utils/firebaseContactStorage';
+import { SupabaseContactStorageService } from '@/utils/supabaseContactStorage';
 import { toast } from '@/hooks/use-toast';
 
 const ContactForm = () => {
@@ -69,7 +70,7 @@ const ContactForm = () => {
     setIsSubmitting(true);
 
     try {
-      const contactService = FirebaseContactStorageService.getInstance();
+      const contactService = SupabaseContactStorageService.getInstance();
       await contactService.saveMessage(formData);
 
       toast({

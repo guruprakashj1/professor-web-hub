@@ -9,7 +9,141 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          application_date: string | null
+          email: string
+          id: string
+          name: string
+          opening_id: string
+          opening_title: string
+          phone: string
+          portfolio_url: string | null
+          qualifications: string
+          resume_file_name: string | null
+          resume_path: string | null
+          resume_url: string | null
+          status: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          email: string
+          id?: string
+          name: string
+          opening_id: string
+          opening_title: string
+          phone: string
+          portfolio_url?: string | null
+          qualifications: string
+          resume_file_name?: string | null
+          resume_path?: string | null
+          resume_url?: string | null
+          status?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          email?: string
+          id?: string
+          name?: string
+          opening_id?: string
+          opening_title?: string
+          phone?: string
+          portfolio_url?: string | null
+          qualifications?: string
+          resume_file_name?: string | null
+          resume_path?: string | null
+          resume_url?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      contact_messages: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          status: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          status?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          status?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
+      portal_data: {
+        Row: {
+          content: Json
+          created_at: string | null
+          data_type: string
+          id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: Json
+          created_at?: string | null
+          data_type: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          data_type?: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      theme_config: {
+        Row: {
+          banner_url: string | null
+          created_at: string | null
+          id: string
+          theme_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string | null
+          id?: string
+          theme_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string | null
+          id?: string
+          theme_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

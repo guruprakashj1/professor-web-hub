@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FirebaseContactStorageService } from '@/utils/firebaseContactStorage';
+import { SupabaseContactStorageService } from '@/utils/supabaseContactStorage';
 import { ContactMessage } from '@/types/contact';
 import { Mail, Phone, User, FileText, Trash2, Eye, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,20 +18,20 @@ const ContactMessagesEditor = () => {
   }, []);
 
   const loadMessages = async () => {
-    const contactService = FirebaseContactStorageService.getInstance();
+    const contactService = SupabaseContactStorageService.getInstance();
     const loadedMessages = await contactService.loadMessages();
     setMessages(loadedMessages);
   };
 
   const handleMarkAsRead = async (id: string) => {
-    const contactService = FirebaseContactStorageService.getInstance();
+    const contactService = SupabaseContactStorageService.getInstance();
     await contactService.markAsRead(id);
     loadMessages();
   };
 
   const handleDeleteMessage = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
-      const contactService = FirebaseContactStorageService.getInstance();
+      const contactService = SupabaseContactStorageService.getInstance();
       await contactService.deleteMessage(id);
       loadMessages();
       setSelectedMessage(null);

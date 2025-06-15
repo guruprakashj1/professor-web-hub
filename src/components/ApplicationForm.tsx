@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { X, Send } from 'lucide-react';
-import { FirebaseApplicationStorageService } from '@/utils/firebaseApplicationStorage';
+import { SupabaseApplicationStorageService } from '@/utils/supabaseApplicationStorage';
 import { toast } from '@/hooks/use-toast';
 import FileUploadPreview from './admin/FileUploadPreview';
 
@@ -27,7 +28,7 @@ const ApplicationForm = ({ opening, onClose }: ApplicationFormProps) => {
   const [resumeFile, setResumeFile] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const applicationService = FirebaseApplicationStorageService.getInstance();
+  const applicationService = SupabaseApplicationStorageService.getInstance();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

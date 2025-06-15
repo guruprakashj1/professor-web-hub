@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ApplicationStorageService } from '@/utils/applicationStorage';
+import { SupabaseApplicationStorageService } from '@/utils/supabaseApplicationStorage';
 import { ApplicationData } from '@/types/application';
 import { toast } from '@/hooks/use-toast';
 import { Eye, Download, Check, X, Clock, User } from 'lucide-react';
@@ -17,7 +18,7 @@ interface ApplicationsViewerProps {
 const ApplicationsViewer = ({ openingId, openingTitle, onClose }: ApplicationsViewerProps) => {
   const [applications, setApplications] = useState<ApplicationData[]>([]);
   const [selectedApplication, setSelectedApplication] = useState<ApplicationData | null>(null);
-  const applicationService = ApplicationStorageService.getInstance();
+  const applicationService = SupabaseApplicationStorageService.getInstance();
 
   useEffect(() => {
     loadApplications();
