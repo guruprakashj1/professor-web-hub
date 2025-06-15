@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +17,8 @@ const GalleryEditor = () => {
   const [formData, setFormData] = useState<Omit<GalleryItem, 'id'>>({
     title: '',
     description: '',
+    imageUrl: '',
+    category: 'Conference',
     mediaType: 'photo',
     photo: '',
     video: '',
@@ -48,15 +49,21 @@ const GalleryEditor = () => {
       return;
     }
     
+    // Set imageUrl based on media type
+    const itemData = {
+      ...formData,
+      imageUrl: formData.mediaType === 'photo' ? formData.photo || '' : formData.video || ''
+    };
+    
     try {
       if (editingId) {
-        updateItem<GalleryItem>('gallery', editingId, formData);
+        updateItem<GalleryItem>('gallery', editingId, itemData);
         toast({
           title: "Gallery Item Updated",
           description: "The gallery item has been successfully updated.",
         });
       } else {
-        createItem<GalleryItem>('gallery', formData);
+        createItem<GalleryItem>('gallery', itemData);
         toast({
           title: "Gallery Item Added",
           description: "A new gallery item has been successfully added.",
@@ -77,6 +84,8 @@ const GalleryEditor = () => {
     setFormData({
       title: item.title,
       description: item.description,
+      imageUrl: item.imageUrl,
+      category: item.category,
       mediaType: item.mediaType,
       photo: item.photo || '',
       video: item.video || '',
@@ -111,6 +120,8 @@ const GalleryEditor = () => {
     setFormData({
       title: '',
       description: '',
+      imageUrl: '',
+      category: 'Conference',
       mediaType: 'photo',
       photo: '',
       video: '',
@@ -143,10 +154,20 @@ const GalleryEditor = () => {
 
   const handleMediaChange = (value: string | undefined) => {
     if (formData.mediaType === 'photo') {
-      setFormData({ ...formData, photo: value || '' });
+      setFormData({ ...formData, photo: value || '', imageUrl: value || '' });
     } else {
-      setFormData({ ...formData, video: value || '' });
+      setFormData({ ...formData, video: value || '', imageUrl: value || '' });
     }
+  };
+
+  const handleLocationChange = (field: 'name' | 'latitude' | 'longitude', value: string | number) => {
+    setFormData({
+      ...formData,
+      location: {
+        ...formData.location,
+        [field]: field === 'name' ? value : (value ? Number(value) : undefined)
+      }
+    });
   };
 
   return (
@@ -181,6 +202,24 @@ const GalleryEditor = () => {
               </div>
               
               <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <Select value={formData.category} onValueChange={(value: any) => setFormData({ ...formData, category: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Conference">Conference</SelectItem>
+                    <SelectItem value="Meeting">Meeting</SelectItem>
+                    <SelectItem value="Workshop">Workshop</SelectItem>
+                    <SelectItem value="Seminar">Seminar</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Event Type</label>
                 <Select value={formData.eventType} onValueChange={(value: any) => setFormData({ ...formData, eventType: value })}>
                   <SelectTrigger>
@@ -196,19 +235,19 @@ const GalleryEditor = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Media Type</label>
-              <Select value={formData.mediaType} onValueChange={handleMediaTypeChange}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="photo">Photo</SelectItem>
-                  <SelectItem value="video">Video</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Media Type</label>
+                <Select value={formData.mediaType} onValueChange={handleMediaTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="photo">Photo</SelectItem>
+                    <SelectItem value="video">Video</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Media Upload Section using FileUploadPreview */}
@@ -247,10 +286,7 @@ const GalleryEditor = () => {
                 <label className="text-sm font-medium">Location Name</label>
                 <Input
                   value={formData.location.name}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    location: { ...formData.location, name: e.target.value }
-                  })}
+                  onChange={(e) => handleLocationChange('name', e.target.value)}
                   placeholder="e.g., Stanford University, CA"
                   required
                 />
@@ -264,10 +300,7 @@ const GalleryEditor = () => {
                   type="number"
                   step="any"
                   value={formData.location.latitude || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    location: { ...formData.location, latitude: e.target.value ? parseFloat(e.target.value) : undefined }
-                  })}
+                  onChange={(e) => handleLocationChange('latitude', e.target.value)}
                   placeholder="37.4419"
                 />
               </div>
@@ -278,10 +311,7 @@ const GalleryEditor = () => {
                   type="number"
                   step="any"
                   value={formData.location.longitude || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    location: { ...formData.location, longitude: e.target.value ? parseFloat(e.target.value) : undefined }
-                  })}
+                  onChange={(e) => handleLocationChange('longitude', e.target.value)}
                   placeholder="-122.1430"
                 />
               </div>

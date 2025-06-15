@@ -18,11 +18,11 @@ export interface About {
     office: string;
     officeHours: string;
   };
-  socialLinks: {
-    linkedin: string;
-    researchGate: string;
-    googleScholar: string;
-    orcid: string;
+  socialLinks?: {
+    linkedin?: string;
+    researchGate?: string;
+    googleScholar?: string;
+    orcid?: string;
   };
 }
 
@@ -55,11 +55,14 @@ export interface Lesson {
   description: string;
   materials: string[];
   week: number;
+  topics?: string[];
+  resources?: Resource[];
 }
 
 export interface Resource {
   id: string;
   title: string;
+  name?: string; // Alternative property name
   type: string;
   url: string;
   description?: string;
@@ -81,11 +84,13 @@ export interface Course {
   outcomes: string[];
   learningOutcomes?: string[]; // Alternative property name
   lessons?: Lesson[];
-  textbooks?: string[];
+  textbooks?: string[] | Array<{ title: string; author: string; edition: string; isbn: string; }>;
   softwareTools?: string[];
   courseLinks?: Array<{ title: string; url: string }>;
   enrollment?: number;
   maxEnrollment?: number;
+  industry?: string; // Additional property for industry relevance
+  online?: boolean; // Additional property for online availability
   schedule: {
     days: string[];
     time: string;
@@ -149,6 +154,9 @@ export interface Opening {
   status?: string; // e.g., 'Open', 'Closed', 'Filled'
 }
 
+// Export alias for OpeningsEditor compatibility
+export type ProjectOpening = Opening;
+
 export interface GalleryItem {
   id: string;
   title: string;
@@ -161,7 +169,7 @@ export interface GalleryItem {
   uploadType?: string;
   date: string;
   eventType?: string;
-  location: string | {
+  location: {
     name: string;
     latitude?: number;
     longitude?: number;

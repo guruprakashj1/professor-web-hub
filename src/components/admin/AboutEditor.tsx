@@ -16,6 +16,13 @@ const AboutEditor = () => {
     title: '',
     bio: '',
     expertise: [],
+    email: '',
+    phone: '',
+    profileImage: '',
+    location: '',
+    officeHours: '',
+    linkedin: '',
+    researchGate: '',
     contact: {
       email: '',
       phone: '',
