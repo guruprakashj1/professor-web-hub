@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { Search, Calendar, Clock, Tag, ArrowLeft, ArrowRight, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useSupabasePortalData } from '@/hooks/useSupabasePortalData';
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/portalData';
@@ -20,7 +22,7 @@ const BlogSection = () => {
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState<BlogCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [allKeywords, setAllKeywords] = useState<string[]>([]);
   const [selectedKeyword, setSelectedKeyword] = useState<string>('');
   
@@ -77,8 +79,12 @@ const BlogSection = () => {
       );
     }
 
-    if (category) {
-      filtered = filtered.filter(blog => blog.categoryId === category);
+    if (category && category !== 'all') {
+      if (category === 'uncategorized') {
+        filtered = filtered.filter(blog => !blog.categoryId);
+      } else {
+        filtered = filtered.filter(blog => blog.categoryId === category);
+      }
     }
 
     if (keyword) {
@@ -92,6 +98,19 @@ const BlogSection = () => {
 
   const getCategoryById = (categoryId: string) => {
     return categories.find(cat => cat.id === categoryId);
+  };
+
+  const getBlogCountByCategory = (categoryId: string) => {
+    if (!data?.blogs) return 0;
+    const publishedBlogs = data.blogs.filter(blog => blog.status === 'Published');
+    
+    if (categoryId === 'all') {
+      return publishedBlogs.length;
+    }
+    if (categoryId === 'uncategorized') {
+      return publishedBlogs.filter(blog => !blog.categoryId).length;
+    }
+    return publishedBlogs.filter(blog => blog.categoryId === categoryId).length;
   };
 
   const handleBlogSelect = (blog: BlogPost) => {
@@ -292,7 +311,7 @@ const BlogSection = () => {
         </p>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search */}
       <div className="mb-8">
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -304,160 +323,152 @@ const BlogSection = () => {
             className="pl-10 border-gray-300 focus:border-black font-light"
           />
         </div>
+      </div>
 
-        {/* Category Filter */}
-        {categories.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-light text-black mb-3">Categories</h3>
-            <div className="flex flex-wrap gap-2">
-              <Badge
-                variant={selectedCategory === '' ? "default" : "outline"}
-                className={`cursor-pointer font-light ${
-                  selectedCategory === '' 
-                    ? "bg-black text-white hover:bg-gray-800 border-black" 
-                    : "border-gray-300 text-gray-700 hover:text-black hover:border-black"
-                }`}
-                onClick={() => setSelectedCategory('')}
-              >
-                All Categories
-              </Badge>
-              {categories.map((category) => (
-                <Badge
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
-                  className={`cursor-pointer font-light ${
-                    selectedCategory === category.id 
-                      ? "text-white hover:opacity-80"
-                      : "text-gray-700 hover:text-black hover:border-black"
-                  }`}
-                  style={{
-                    backgroundColor: selectedCategory === category.id ? category.color : 'transparent',
-                    borderColor: category.color,
-                    color: selectedCategory === category.id ? 'white' : category.color
-                  }}
-                  onClick={() => setSelectedCategory(selectedCategory === category.id ? '' : category.id)}
-                >
-                  {category.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Category Tabs */}
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full mb-8">
+        <TabsList className="grid w-full grid-cols-auto bg-gray-100 p-1">
+          <TabsTrigger 
+            value="all" 
+            className="font-light data-[state=active]:bg-white data-[state=active]:text-black"
+          >
+            All Posts ({getBlogCountByCategory('all')})
+          </TabsTrigger>
+          {categories.map((category) => (
+            <TabsTrigger 
+              key={category.id} 
+              value={category.id}
+              className="font-light data-[state=active]:bg-white data-[state=active]:text-black"
+            >
+              {category.name} ({getBlogCountByCategory(category.id)})
+            </TabsTrigger>
+          ))}
+          {getBlogCountByCategory('uncategorized') > 0 && (
+            <TabsTrigger 
+              value="uncategorized"
+              className="font-light data-[state=active]:bg-white data-[state=active]:text-black"
+            >
+              Uncategorized ({getBlogCountByCategory('uncategorized')})
+            </TabsTrigger>
+          )}
+        </TabsList>
 
-        {/* Keyword Cloud */}
-        {allKeywords.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-light text-black mb-3">Topics</h3>
-            <div className="flex flex-wrap gap-2">
-              <Badge
-                variant={selectedKeyword === '' ? "default" : "outline"}
-                className={`cursor-pointer font-light ${
-                  selectedKeyword === '' 
-                    ? "bg-black text-white hover:bg-gray-800 border-black" 
-                    : "border-gray-300 text-gray-700 hover:text-black hover:border-black"
-                }`}
-                onClick={() => setSelectedKeyword('')}
-              >
-                All Topics
-              </Badge>
-              {allKeywords.map((keyword) => (
+        <TabsContent value={selectedCategory} className="mt-6">
+          {/* Keyword Filter */}
+          {allKeywords.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-light text-black mb-3">Topics</h3>
+              <div className="flex flex-wrap gap-2">
                 <Badge
-                  key={keyword}
-                  variant={selectedKeyword === keyword ? "default" : "outline"}
+                  variant={selectedKeyword === '' ? "default" : "outline"}
                   className={`cursor-pointer font-light ${
-                    selectedKeyword === keyword 
+                    selectedKeyword === '' 
                       ? "bg-black text-white hover:bg-gray-800 border-black" 
                       : "border-gray-300 text-gray-700 hover:text-black hover:border-black"
                   }`}
-                  onClick={() => setSelectedKeyword(selectedKeyword === keyword ? '' : keyword)}
+                  onClick={() => setSelectedKeyword('')}
                 >
-                  {keyword}
+                  All Topics
                 </Badge>
-              ))}
+                {allKeywords.map((keyword) => (
+                  <Badge
+                    key={keyword}
+                    variant={selectedKeyword === keyword ? "default" : "outline"}
+                    className={`cursor-pointer font-light ${
+                      selectedKeyword === keyword 
+                        ? "bg-black text-white hover:bg-gray-800 border-black" 
+                        : "border-gray-300 text-gray-700 hover:text-black hover:border-black"
+                    }`}
+                    onClick={() => setSelectedKeyword(selectedKeyword === keyword ? '' : keyword)}
+                  >
+                    {keyword}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Blog List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredBlogs.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-600 text-lg font-light">
-              {searchQuery || selectedCategory || selectedKeyword ? 'No blog posts found matching your criteria.' : 'No blog posts available.'}
-            </p>
+          {/* Blog List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredBlogs.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-600 text-lg font-light">
+                  {searchQuery || selectedKeyword ? 'No blog posts found matching your criteria.' : 'No blog posts available.'}
+                </p>
+              </div>
+            ) : (
+              filteredBlogs.map((blog) => {
+                const category = blog.categoryId ? getCategoryById(blog.categoryId) : null;
+                return (
+                  <Card 
+                    key={blog.id} 
+                    className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-black bg-white hover:scale-105"
+                    onClick={() => handleBlogSelect(blog)}
+                  >
+                    {blog.featuredImage && (
+                      <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                        <img 
+                          src={blog.featuredImage} 
+                          alt={blog.title}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 grayscale"
+                        />
+                      </div>
+                    )}
+                    
+                    <CardHeader>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <Calendar className="w-4 h-4" />
+                        <span className="font-light">{formatDate(blog.publishDate)}</span>
+                        <Clock className="w-4 h-4 ml-2" />
+                        <span className="font-light">{blog.readingTime} min read</span>
+                        {category && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs font-light ml-auto"
+                            style={{ borderColor: category.color, color: category.color }}
+                          >
+                            {category.name}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <CardTitle className="line-clamp-2 hover:text-black transition-colors font-light text-gray-900">
+                        {blog.title}
+                      </CardTitle>
+                      
+                      <CardDescription className="line-clamp-3 font-light text-gray-700">
+                        {blog.excerpt}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {blog.keywords.slice(0, 3).map((keyword) => (
+                          <Badge key={keyword} variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
+                            {keyword}
+                          </Badge>
+                        ))}
+                        {blog.keywords.length > 3 && (
+                          <Badge variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
+                            +{blog.keywords.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {blog.videoUrl && (
+                        <div className="flex items-center gap-1 text-sm text-black">
+                          <Play className="w-4 h-4" />
+                          <span className="font-light">Video Content</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
           </div>
-        ) : (
-          filteredBlogs.map((blog) => {
-            const category = blog.categoryId ? getCategoryById(blog.categoryId) : null;
-            return (
-              <Card 
-                key={blog.id} 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-black bg-white hover:scale-105"
-                onClick={() => handleBlogSelect(blog)}
-              >
-                {blog.featuredImage && (
-                  <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                    <img 
-                      src={blog.featuredImage} 
-                      alt={blog.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 grayscale"
-                    />
-                  </div>
-                )}
-                
-                <CardHeader>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                    <Calendar className="w-4 h-4" />
-                    <span className="font-light">{formatDate(blog.publishDate)}</span>
-                    <Clock className="w-4 h-4 ml-2" />
-                    <span className="font-light">{blog.readingTime} min read</span>
-                    {category && (
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs font-light ml-auto"
-                        style={{ borderColor: category.color, color: category.color }}
-                      >
-                        {category.name}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <CardTitle className="line-clamp-2 hover:text-black transition-colors font-light text-gray-900">
-                    {blog.title}
-                  </CardTitle>
-                  
-                  <CardDescription className="line-clamp-3 font-light text-gray-700">
-                    {blog.excerpt}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {blog.keywords.slice(0, 3).map((keyword) => (
-                      <Badge key={keyword} variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
-                        {keyword}
-                      </Badge>
-                    ))}
-                    {blog.keywords.length > 3 && (
-                      <Badge variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
-                        +{blog.keywords.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {blog.videoUrl && (
-                    <div className="flex items-center gap-1 text-sm text-black">
-                      <Play className="w-4 h-4" />
-                      <span className="font-light">Video Content</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
