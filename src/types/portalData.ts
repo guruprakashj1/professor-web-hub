@@ -7,6 +7,7 @@ export interface About {
   email: string;
   phone: string;
   profileImage: string;
+  profilePicture?: string; // Alternative property name used in components
   location: string;
   officeHours: string;
   linkedin: string;
@@ -40,17 +41,51 @@ export interface EducationItem {
   universityLogo?: string;
 }
 
+export interface Certification {
+  id: string;
+  title: string;
+  organization: string;
+  year: string;
+  description?: string;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  description: string;
+  materials: string[];
+  week: number;
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+  type: string;
+  url: string;
+  description?: string;
+}
+
 export interface Course {
   id: string;
   name: string;
+  title?: string; // Alternative property name
   code: string;
   term: string;
   year: string;
+  semester?: string; // Additional property
   description: string;
   syllabus: string;
   credits: number;
+  level?: string; // e.g., 'Graduate', 'Undergraduate'
   prerequisites: string[];
   outcomes: string[];
+  learningOutcomes?: string[]; // Alternative property name
+  lessons?: Lesson[];
+  textbooks?: string[];
+  softwareTools?: string[];
+  courseLinks?: Array<{ title: string; url: string }>;
+  enrollment?: number;
+  maxEnrollment?: number;
   schedule: {
     days: string[];
     time: string;
@@ -65,6 +100,7 @@ export interface Project {
   technologies: string[];
   startDate: string;
   endDate?: string;
+  duration?: string; // Alternative property for displaying duration
   status: 'Planning' | 'In Progress' | 'Completed' | 'On Hold';
   category: string;
   imageUrl?: string;
@@ -72,6 +108,13 @@ export interface Project {
   liveUrl?: string;
   collaborators: string[];
   publications: string[];
+  achievements?: string[];
+  links?: {
+    demo?: string;
+    github?: string;
+    paper?: string;
+    video?: string;
+  };
 }
 
 export interface ResearchPaper {
@@ -92,14 +135,18 @@ export interface Opening {
   id: string;
   title: string;
   type: 'PhD' | 'Postdoc' | 'Research Assistant' | 'Visiting Scholar';
+  level?: string; // Additional property for level classification
   description: string;
   requirements: string[];
   deadline: string;
+  applicationDeadline?: string; // Alternative property name
   startDate: string;
+  duration?: string;
   funding: string;
   applicationUrl: string;
   contactEmail: string;
   isActive: boolean;
+  status?: string; // e.g., 'Open', 'Closed', 'Filled'
 }
 
 export interface GalleryItem {
@@ -135,11 +182,18 @@ export interface BlogPost {
   status: 'Draft' | 'Published';
   featuredImage?: string;
   videoUrl?: string;
+  lastModified?: string; // Additional property for admin
+  seoTitle?: string; // Additional property for SEO
+  seoDescription?: string; // Additional property for SEO
 }
+
+// Export alias for compatibility with admin components
+export type AboutInfo = About;
 
 export interface PortalData {
   about: About;
   education: EducationItem[];
+  certifications: Certification[]; // Add missing certifications property
   courses: Course[];
   projects: Project[];
   research: ResearchPaper[];
