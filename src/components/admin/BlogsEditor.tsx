@@ -69,10 +69,16 @@ const BlogsEditor = () => {
     try {
       const readingTime = calculateReadingTime(blog.content);
       
+      // Convert "none" back to undefined for categoryId
+      const blogToSave = {
+        ...blog,
+        categoryId: blog.categoryId === 'none' ? undefined : blog.categoryId
+      };
+      
       if (editingBlog) {
         const updatedBlog: BlogPost = {
           ...editingBlog,
-          ...blog,
+          ...blogToSave,
           readingTime,
           lastModified: new Date().toISOString()
         };
@@ -83,7 +89,7 @@ const BlogsEditor = () => {
         });
       } else {
         const newBlog: BlogPost = {
-          ...blog,
+          ...blogToSave,
           id: generateId(),
           readingTime,
           lastModified: new Date().toISOString()
@@ -284,7 +290,7 @@ const BlogForm = ({ blog, categories, onSave, onCancel }: BlogFormProps) => {
     seoDescription: blog?.seoDescription || '',
     featuredImage: blog?.featuredImage || '',
     videoUrl: blog?.videoUrl || '',
-    categoryId: blog?.categoryId || ''
+    categoryId: blog?.categoryId || 'none'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -346,7 +352,7 @@ const BlogForm = ({ blog, categories, onSave, onCancel }: BlogFormProps) => {
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Category</SelectItem>
+                  <SelectItem value="none">No Category</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       <div className="flex items-center gap-2">
