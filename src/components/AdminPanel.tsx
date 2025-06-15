@@ -26,7 +26,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const { toast } = useToast();
 
   if (!isAuthenticated) {
-    return <AdminLogin onAuthenticated={() => setIsAuthenticated(true)} onClose={onClose} />;
+    return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
   }
 
   const handleExport = () => {
