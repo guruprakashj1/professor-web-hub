@@ -25,14 +25,14 @@ export interface About {
   phone: string;
   profileImage: string;
   location: string;
-  profilePicture?: string; // Add missing property
-  contact?: { // Add missing contact object
+  profilePicture?: string;
+  contact?: {
     email?: string;
     phone?: string;
     office?: string;
     officeHours?: string;
   };
-  expertise?: string[]; // Add missing property
+  expertise?: string[];
   socialLinks: {
     linkedin?: string;
     twitter?: string;
@@ -46,19 +46,24 @@ export interface About {
   cv: string;
 }
 
-// Add missing AboutInfo type for admin editor
+// Update AboutInfo to match About interface properly
 export interface AboutInfo {
   name: string;
   title: string;
   bio: string;
-  expertise: string[];
-  contact: {
-    email: string;
-    phone: string;
-    office: string;
-    officeHours: string;
+  email?: string;
+  phone?: string;
+  profileImage?: string;
+  location?: string;
+  profilePicture?: string;
+  expertise?: string[];
+  contact?: {
+    email?: string;
+    phone?: string;
+    office?: string;
+    officeHours?: string;
   };
-  socialLinks: {
+  socialLinks?: {
     linkedin?: string;
     twitter?: string;
     github?: string;
@@ -66,6 +71,9 @@ export interface AboutInfo {
     googleScholar?: string;
     researchGate?: string;
   };
+  researchInterests?: string[];
+  officeHours?: string;
+  cv?: string;
 }
 
 export interface EducationItem {
@@ -78,9 +86,9 @@ export interface EducationItem {
   description: string;
   location: string;
   achievements: string[];
-  year?: string; // Add missing property
-  advisor?: string; // Add missing property
-  universityLogo?: string; // Add missing property
+  year?: string;
+  advisor?: string;
+  universityLogo?: string;
 }
 
 export interface Certification {
@@ -94,7 +102,7 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  status: 'Ongoing' | 'Completed' | 'Planned' | 'In Progress'; // Add 'In Progress' status
+  status: 'Ongoing' | 'Completed' | 'Planned' | 'In Progress';
   startDate: string;
   endDate?: string;
   technologies: string[];
@@ -105,14 +113,52 @@ export interface Project {
   repository?: string;
   website?: string;
   publications: string[];
-  duration?: string; // Add missing property
-  achievements?: string[]; // Add missing property
-  links?: { // Add missing links object
+  duration?: string;
+  achievements?: string[];
+  links?: {
     demo?: string;
     github?: string;
     paper?: string;
     video?: string;
   };
+}
+
+export interface ProjectOpening {
+  id: string;
+  title: string;
+  description: string;
+  requirements: string[];
+  responsibilities: string[];
+  type: 'PhD' | 'Postdoc' | 'Research Assistant' | 'Visiting Scholar';
+  duration: string;
+  startDate: string;
+  applicationDeadline: string;
+  funding: string;
+  location: string;
+  qualifications: string[];
+  contact: string;
+  status: 'Open' | 'Closed' | 'Filled';
+  level?: string;
+}
+
+// Update Lesson interface to include missing properties
+export interface Lesson {
+  id?: string;
+  week: number;
+  title: string;
+  description?: string;
+  topics: string[];
+  resources: Resource[];
+  materials?: Resource[];
+}
+
+// Update Resource interface
+export interface Resource {
+  id?: string;
+  name: string;
+  title?: string;
+  type: 'PDF' | 'Video' | 'Link' | 'Assignment' | 'learning' | 'download' | 'video' | 'document';
+  url: string;
 }
 
 // Update Course interface to match component usage
@@ -124,11 +170,11 @@ export interface Course {
   level: 'Undergraduate' | 'Graduate';
   credits: number;
   semester: string;
-  year: string;
+  year?: string;
   syllabus?: string;
-  materials: string[];
-  prerequisites: string[];
-  objectives: string[];
+  materials?: string[];
+  prerequisites?: string[];
+  objectives?: string[];
   schedule: {
     days: string;
     time: string;
@@ -136,27 +182,21 @@ export interface Course {
   };
   enrollment: number;
   maxEnrollment: number;
-  learningOutcomes?: string[]; // Add missing property
-  lessons?: Lesson[]; // Add missing property
-  textbooks?: string[]; // Add missing property
-  softwareTools?: string[]; // Add missing property
-}
-
-// Add missing Lesson type
-export interface Lesson {
-  id: string;
-  title: string;
-  description: string;
-  week: number;
-  materials: Resource[];
-}
-
-// Add missing Resource type
-export interface Resource {
-  id: string;
-  title: string;
-  type: 'PDF' | 'Video' | 'Link' | 'Assignment';
-  url: string;
+  learningOutcomes?: string[];
+  lessons?: Lesson[];
+  textbooks?: Array<{
+    title: string;
+    author: string;
+    edition: string;
+    isbn: string;
+  }>;
+  softwareTools?: string[];
+  online?: boolean;
+  industry?: string;
+  courseLinks?: Array<{
+    name: string;
+    url: string;
+  }>;
 }
 
 export interface ResearchPaper {
@@ -191,6 +231,7 @@ export interface JobOpening {
   qualifications: string[];
   contact: string;
   status: 'Open' | 'Closed' | 'Filled';
+  level?: string;
 }
 
 export interface GalleryItem {
@@ -202,11 +243,16 @@ export interface GalleryItem {
   date: string;
   tags: string[];
   caption?: string;
-  location?: string | { name: string }; // Allow both string and object
-  mediaType?: 'photo' | 'video'; // Add missing property
-  eventType?: string; // Add missing property
-  photo?: string; // Add missing property
-  video?: string; // Add missing property
+  location?: string | { 
+    name: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  mediaType?: 'photo' | 'video';
+  eventType?: string;
+  photo?: string;
+  video?: string;
+  uploadType?: string;
 }
 
 export interface PortalData {
@@ -218,5 +264,5 @@ export interface PortalData {
   openings: JobOpening[];
   blogs: BlogPost[];
   gallery: GalleryItem[];
-  certifications?: Certification[]; // Add missing property
+  certifications?: Certification[];
 }
