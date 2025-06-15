@@ -1,11 +1,15 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, GraduationCap, Calendar, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, GraduationCap, Calendar, AlertCircle, Send } from 'lucide-react';
 import { usePortalData } from '@/hooks/usePortalData';
+import ApplicationForm from './ApplicationForm';
 
 const OpeningsSection = () => {
   const { data, loading, error } = usePortalData();
+  const [selectedOpening, setSelectedOpening] = useState<any>(null);
 
   if (loading) {
     return (
@@ -31,51 +35,68 @@ const OpeningsSection = () => {
   const activeOpenings = openings.filter(opening => opening.status === 'Open');
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-4xl font-light text-black mb-8 text-center">Project Openings</h2>
-        
-        {openings.length === 0 ? (
-          <div className="text-center text-gray-700 py-16">
-            <div className="text-xl mb-4 font-light">No project openings available</div>
-            <p className="font-light">Please check back later for new research opportunities and project openings.</p>
-          </div>
-        ) : (
-          <>
-            {activeOpenings.length > 0 && (
-              <div className="mb-12">
-                <h3 className="text-2xl font-light text-gray-800 mb-6 flex items-center">
-                  <AlertCircle className="w-6 h-6 mr-2 text-black" />
-                  Currently Available Opportunities
-                </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {activeOpenings.map((opening) => (
-                    <OpeningCard key={opening.id} opening={opening} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {openings.filter(opening => opening.status !== 'Open').length > 0 && (
-              <div>
-                <h3 className="text-2xl font-light text-gray-800 mb-6">Previous Opportunities</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {openings
-                    .filter(opening => opening.status !== 'Open')
-                    .map((opening) => (
-                      <OpeningCard key={opening.id} opening={opening} />
+    <>
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-light text-black mb-8 text-center">Project Openings</h2>
+          
+          {openings.length === 0 ? (
+            <div className="text-center text-gray-700 py-16">
+              <div className="text-xl mb-4 font-light">No project openings available</div>
+              <p className="font-light">Please check back later for new research opportunities and project openings.</p>
+            </div>
+          ) : (
+            <>
+              {activeOpenings.length > 0 && (
+                <div className="mb-12">
+                  <h3 className="text-2xl font-light text-gray-800 mb-6 flex items-center">
+                    <AlertCircle className="w-6 h-6 mr-2 text-black" />
+                    Currently Available Opportunities
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {activeOpenings.map((opening) => (
+                      <OpeningCard 
+                        key={opening.id} 
+                        opening={opening} 
+                        onApply={() => setSelectedOpening(opening)}
+                      />
                     ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </>
-        )}
+              )}
+
+              {openings.filter(opening => opening.status !== 'Open').length > 0 && (
+                <div>
+                  <h3 className="text-2xl font-light text-gray-800 mb-6">Previous Opportunities</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {openings
+                      .filter(opening => opening.status !== 'Open')
+                      .map((opening) => (
+                        <OpeningCard 
+                          key={opening.id} 
+                          opening={opening}
+                          onApply={() => setSelectedOpening(opening)}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+
+      {selectedOpening && (
+        <ApplicationForm
+          opening={selectedOpening}
+          onClose={() => setSelectedOpening(null)}
+        />
+      )}
+    </>
   );
 };
 
-const OpeningCard = ({ opening }: { opening: any }) => {
+const OpeningCard = ({ opening, onApply }: { opening: any; onApply: () => void }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Open':
@@ -151,6 +172,19 @@ const OpeningCard = ({ opening }: { opening: any }) => {
                 <li key={index} className="text-gray-800 text-sm font-light">{requirement}</li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Apply Button */}
+        {opening.status === 'Open' && (
+          <div className="pt-4">
+            <Button 
+              onClick={onApply}
+              className="w-full bg-black text-white hover:bg-gray-800 font-light"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Apply Now
+            </Button>
           </div>
         )}
       </CardContent>
