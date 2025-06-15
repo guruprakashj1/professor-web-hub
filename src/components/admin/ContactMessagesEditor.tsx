@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ContactStorageService } from '@/utils/contactStorage';
+import { FirebaseContactStorageService } from '@/utils/firebaseContactStorage';
 import { ContactMessage } from '@/types/contact';
 import { Mail, Phone, User, FileText, Trash2, Eye, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -17,20 +18,20 @@ const ContactMessagesEditor = () => {
   }, []);
 
   const loadMessages = async () => {
-    const contactService = ContactStorageService.getInstance();
+    const contactService = FirebaseContactStorageService.getInstance();
     const loadedMessages = await contactService.loadMessages();
-    setMessages(loadedMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    setMessages(loadedMessages);
   };
 
   const handleMarkAsRead = async (id: string) => {
-    const contactService = ContactStorageService.getInstance();
+    const contactService = FirebaseContactStorageService.getInstance();
     await contactService.markAsRead(id);
     loadMessages();
   };
 
   const handleDeleteMessage = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
-      const contactService = ContactStorageService.getInstance();
+      const contactService = FirebaseContactStorageService.getInstance();
       await contactService.deleteMessage(id);
       loadMessages();
       setSelectedMessage(null);

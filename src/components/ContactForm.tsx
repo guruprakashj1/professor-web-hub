@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ContactStorageService } from '@/utils/contactStorage';
+import { FirebaseContactStorageService } from '@/utils/firebaseContactStorage';
 import { toast } from '@/hooks/use-toast';
 
 const ContactForm = () => {
@@ -37,7 +36,7 @@ const ContactForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     const form = e.currentTarget;
@@ -70,8 +69,8 @@ const ContactForm = () => {
     setIsSubmitting(true);
 
     try {
-      const contactService = ContactStorageService.getInstance();
-      contactService.saveMessage(formData);
+      const contactService = FirebaseContactStorageService.getInstance();
+      await contactService.saveMessage(formData);
 
       toast({
         title: "Message Sent",

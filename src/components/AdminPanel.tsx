@@ -15,7 +15,7 @@ import BlogsEditor from './admin/BlogsEditor';
 import GalleryEditor from './admin/GalleryEditor';
 import ContactMessagesEditor from './admin/ContactMessagesEditor';
 import ThemeSelector from './admin/ThemeSelector';
-import { usePortalData } from '@/hooks/usePortalData';
+import { useFirebasePortalData } from '@/hooks/useFirebasePortalData';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminPanelProps {
@@ -25,7 +25,7 @@ interface AdminPanelProps {
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
-  const { exportData, importData, resetData } = usePortalData();
+  const { exportData, importData, resetData } = useFirebasePortalData();
   const { toast } = useToast();
 
   if (!isAuthenticated) {
