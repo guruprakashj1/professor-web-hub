@@ -49,7 +49,8 @@ const defaultData: PortalData = {
   projects: [],
   courses: [],
   research: [],
-  openings: []
+  openings: [],
+  blogs: []
 };
 
 export class FileStorageService {
@@ -67,7 +68,12 @@ export class FileStorageService {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const data = JSON.parse(stored);
+        // Ensure blogs array exists for backward compatibility
+        if (!data.blogs) {
+          data.blogs = [];
+        }
+        return data;
       }
       return defaultData;
     } catch (error) {

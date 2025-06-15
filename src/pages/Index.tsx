@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen } from 'lucide-react';
+import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Navigation from '@/components/Navigation';
@@ -10,6 +10,7 @@ import ProjectsSection from '@/components/ProjectsSection';
 import CoursesSection from '@/components/CoursesSection';
 import ResearchSection from '@/components/ResearchSection';
 import OpeningsSection from '@/components/OpeningsSection';
+import BlogSection from '@/components/BlogSection';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
@@ -28,6 +29,8 @@ const Index = () => {
         return <ResearchSection />;
       case 'openings':
         return <OpeningsSection />;
+      case 'blog':
+        return <BlogSection />;
       default:
         return <HeroSection setActiveSection={setActiveSection} />;
     }
@@ -86,6 +89,13 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
       description: 'Available research opportunities for students',
       icon: Book,
       color: 'bg-red-500 hover:bg-red-600'
+    },
+    {
+      id: 'blog',
+      title: 'Blog',
+      description: 'Insights, research updates, and thoughts on education',
+      icon: PenTool,
+      color: 'bg-teal-500 hover:bg-teal-600'
     }
   ];
 

@@ -107,6 +107,23 @@ export interface ProjectOpening {
   applicationDeadline: string;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  keywords: string[];
+  author: string;
+  publishDate: string;
+  lastModified: string;
+  status: 'Draft' | 'Published';
+  seoTitle?: string;
+  seoDescription?: string;
+  featuredImage?: string;
+  videoUrl?: string;
+  readingTime: number;
+}
+
 export interface AboutInfo {
   name: string;
   title: string;
@@ -135,4 +152,5 @@ export interface PortalData {
   courses: Course[];
   research: ResearchPaper[];
   openings: ProjectOpening[];
+  blogs: BlogPost[];
 }

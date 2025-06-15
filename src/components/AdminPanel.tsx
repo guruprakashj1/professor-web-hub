@@ -1,11 +1,9 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePortalData } from '@/hooks/usePortalData';
-import { Settings, Download, Upload, RotateCcw, Plus } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 import AdminLogin from './AdminLogin';
 import AboutEditor from './admin/AboutEditor';
 import EducationEditor from './admin/EducationEditor';
@@ -13,35 +11,32 @@ import ProjectsEditor from './admin/ProjectsEditor';
 import CoursesEditor from './admin/CoursesEditor';
 import ResearchEditor from './admin/ResearchEditor';
 import OpeningsEditor from './admin/OpeningsEditor';
+import BlogsEditor from './admin/BlogsEditor';
+import { usePortalData } from '@/hooks/usePortalData';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminPanelProps {
   onClose: () => void;
 }
 
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
-  const { data, loading, error, exportData, importData, resetData, refreshData } = usePortalData();
-  const [importText, setImportText] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeTab, setActiveTab] = useState('about');
+  const { exportData, importData, resetData } = usePortalData();
+  const { toast } = useToast();
 
-  // Refresh data when component mounts and when authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      refreshData();
-    }
-  }, [isAuthenticated, refreshData]);
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
+  if (!isAuthenticated) {
+    return <AdminLogin onAuthenticated={() => setIsAuthenticated(true)} onClose={onClose} />;
+  }
 
   const handleExport = () => {
     try {
-      const jsonData = exportData();
-      const blob = new Blob([jsonData], { type: 'application/json' });
+      const data = exportData();
+      const blob = new Blob([data], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'professor-portal-data.json';
+      a.download = `professor-portal-data-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -49,167 +44,156 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
       
       toast({
         title: "Data Exported",
-        description: "Portal data has been exported successfully.",
+        description: "Your portal data has been exported successfully.",
       });
-    } catch (err) {
+    } catch (error) {
       toast({
         title: "Export Failed",
-        description: "Failed to export data.",
-        variant: "destructive",
+        description: "Failed to export data. Please try again.",
+        variant: "destructive"
       });
     }
   };
 
-  const handleImport = () => {
-    try {
-      importData(importText);
-      setImportText('');
-      refreshData(); // Refresh after import
-      toast({
-        title: "Data Imported",
-        description: "Portal data has been imported successfully.",
-      });
-    } catch (err) {
-      toast({
-        title: "Import Failed",
-        description: "Invalid JSON data. Please check the format.",
-        variant: "destructive",
-      });
-    }
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        importData(content);
+        toast({
+          title: "Data Imported",
+          description: "Your portal data has been imported successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Import Failed",
+          description: "Failed to import data. Please check the file format.",
+          variant: "destructive"
+        });
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
   };
 
   const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset all data to default? This action cannot be undone.')) {
+    if (window.confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
       try {
         resetData();
-        refreshData(); // Refresh after reset
         toast({
           title: "Data Reset",
-          description: "Portal data has been reset to default values.",
+          description: "All portal data has been reset to defaults.",
         });
-      } catch (err) {
+      } catch (error) {
         toast({
           title: "Reset Failed",
-          description: "Failed to reset data.",
-          variant: "destructive",
+          description: "Failed to reset data. Please try again.",
+          variant: "destructive"
         });
       }
     }
   };
 
-  if (!isAuthenticated) {
-    return <AdminLogin onLogin={handleLogin} />;
-  }
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-64">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-600">Error: {error}</div>;
-  }
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-6xl h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center space-x-2">
-            <Settings className="w-6 h-6" />
-            <h2 className="text-2xl font-bold">Admin Panel</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Admin Panel</h2>
+            <p className="text-gray-600">Manage your portal content</p>
           </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => {
-              refreshData();
-              toast({
-                title: "Data Refreshed",
-                description: "Portal data has been refreshed.",
-              });
-            }}>
-              Refresh
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
             </Button>
-            <Button variant="outline" onClick={onClose}>
-              Close
+            <label>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImport}
+                className="hidden"
+              />
+              <Button variant="outline" size="sm" asChild>
+                <span>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import
+                </span>
+              </Button>
+            </label>
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
-
-        <div className="flex-1 overflow-hidden">
-          <Tabs defaultValue="about" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-7 m-4">
-              <TabsTrigger value="about">About</TabsTrigger>
-              <TabsTrigger value="education">Education</TabsTrigger>
-              <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="courses">Courses</TabsTrigger>
-              <TabsTrigger value="research">Research</TabsTrigger>
-              <TabsTrigger value="openings">Openings</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+        
+        <CardContent className="p-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+            <TabsList className="grid w-full grid-cols-8 h-12">
+              <TabsTrigger value="about" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">About</span>
+              </TabsTrigger>
+              <TabsTrigger value="education" className="flex items-center gap-2">
+                <GraduationCap className="w-4 h-4" />
+                <span className="hidden sm:inline">Education</span>
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                <span className="hidden sm:inline">Projects</span>
+              </TabsTrigger>
+              <TabsTrigger value="courses" className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                <span className="hidden sm:inline">Courses</span>
+              </TabsTrigger>
+              <TabsTrigger value="research" className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">Research</span>
+              </TabsTrigger>
+              <TabsTrigger value="openings" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Openings</span>
+              </TabsTrigger>
+              <TabsTrigger value="blog" className="flex items-center gap-2">
+                <PenTool className="w-4 h-4" />
+                <span className="hidden sm:inline">Blog</span>
+              </TabsTrigger>
             </TabsList>
-
-            <div className="flex-1 overflow-auto px-4 pb-4">
+            
+            <div className="max-h-[70vh] overflow-y-auto p-6">
               <TabsContent value="about" className="mt-0">
                 <AboutEditor />
               </TabsContent>
-              
               <TabsContent value="education" className="mt-0">
                 <EducationEditor />
               </TabsContent>
-              
               <TabsContent value="projects" className="mt-0">
                 <ProjectsEditor />
               </TabsContent>
-              
               <TabsContent value="courses" className="mt-0">
                 <CoursesEditor />
               </TabsContent>
-              
               <TabsContent value="research" className="mt-0">
                 <ResearchEditor />
               </TabsContent>
-              
               <TabsContent value="openings" className="mt-0">
                 <OpeningsEditor />
               </TabsContent>
-              
-              <TabsContent value="settings" className="mt-0">
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Data Management</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex space-x-4">
-                        <Button onClick={handleExport} className="flex items-center space-x-2">
-                          <Download className="w-4 h-4" />
-                          <span>Export Data</span>
-                        </Button>
-                        
-                        <Button variant="destructive" onClick={handleReset} className="flex items-center space-x-2">
-                          <RotateCcw className="w-4 h-4" />
-                          <span>Reset to Default</span>
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Import Data (JSON)</label>
-                        <textarea
-                          value={importText}
-                          onChange={(e) => setImportText(e.target.value)}
-                          placeholder="Paste JSON data here..."
-                          className="w-full h-32 p-2 border border-gray-300 rounded-md"
-                        />
-                        <Button onClick={handleImport} disabled={!importText.trim()} className="flex items-center space-x-2">
-                          <Upload className="w-4 h-4" />
-                          <span>Import Data</span>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+              <TabsContent value="blog" className="mt-0">
+                <BlogsEditor />
               </TabsContent>
             </div>
           </Tabs>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
