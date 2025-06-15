@@ -41,6 +41,9 @@ const Navigation = ({
     id: 'gallery',
     label: 'Gallery'
   }, {
+    id: 'contact',
+    label: 'Contact'
+  }, {
     id: 'blog',
     label: 'Blog'
   }];

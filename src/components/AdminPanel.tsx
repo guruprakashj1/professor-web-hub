@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool, Camera } from 'lucide-react';
+import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool, Camera, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +13,7 @@ import ResearchEditor from './admin/ResearchEditor';
 import OpeningsEditor from './admin/OpeningsEditor';
 import BlogsEditor from './admin/BlogsEditor';
 import GalleryEditor from './admin/GalleryEditor';
+import ContactMessagesEditor from './admin/ContactMessagesEditor';
 import { usePortalData } from '@/hooks/usePortalData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -138,7 +139,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-            <TabsList className="grid w-full grid-cols-8 h-12">
+            <TabsList className="grid w-full grid-cols-9 h-12">
               <TabsTrigger value="about" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">About</span>
@@ -167,6 +168,10 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                 <Camera className="w-4 h-4" />
                 <span className="hidden sm:inline">Gallery</span>
               </TabsTrigger>
+              <TabsTrigger value="contact" className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Contact</span>
+              </TabsTrigger>
               <TabsTrigger value="blog" className="flex items-center gap-2">
                 <PenTool className="w-4 h-4" />
                 <span className="hidden sm:inline">Blog</span>
@@ -194,6 +199,9 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               </TabsContent>
               <TabsContent value="gallery" className="mt-0">
                 <GalleryEditor />
+              </TabsContent>
+              <TabsContent value="contact" className="mt-0">
+                <ContactMessagesEditor />
               </TabsContent>
               <TabsContent value="blog" className="mt-0">
                 <BlogsEditor />

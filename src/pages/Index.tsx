@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool, Camera } from 'lucide-react';
+import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool, Camera, Mail } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Navigation from '@/components/Navigation';
@@ -12,6 +11,7 @@ import ResearchSection from '@/components/ResearchSection';
 import OpeningsSection from '@/components/OpeningsSection';
 import BlogSection from '@/components/BlogSection';
 import GallerySection from '@/components/GallerySection';
+import ContactSection from '@/components/ContactSection';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
@@ -32,6 +32,8 @@ const Index = () => {
         return <OpeningsSection />;
       case 'gallery':
         return <GallerySection />;
+      case 'contact':
+        return <ContactSection />;
       case 'blog':
         return <BlogSection />;
       default:
@@ -92,6 +94,12 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
       title: 'Gallery',
       description: 'Photos from conferences, meetings, and academic events',
       icon: Camera,
+    },
+    {
+      id: 'contact',
+      title: 'Contact',
+      description: 'Get in touch for collaborations and inquiries',
+      icon: Mail,
     },
     {
       id: 'blog',
