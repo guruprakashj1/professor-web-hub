@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool, Camera, MessageCircle } from 'lucide-react';
+import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool, Camera, MessageCircle, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +14,7 @@ import OpeningsEditor from './admin/OpeningsEditor';
 import BlogsEditor from './admin/BlogsEditor';
 import GalleryEditor from './admin/GalleryEditor';
 import ContactMessagesEditor from './admin/ContactMessagesEditor';
+import ThemeSelector from './admin/ThemeSelector';
 import { usePortalData } from '@/hooks/usePortalData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -139,7 +140,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-            <TabsList className="grid w-full grid-cols-9 h-12">
+            <TabsList className="grid w-full grid-cols-10 h-12">
               <TabsTrigger value="about" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">About</span>
@@ -176,6 +177,10 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                 <PenTool className="w-4 h-4" />
                 <span className="hidden sm:inline">Blog</span>
               </TabsTrigger>
+              <TabsTrigger value="theme" className="flex items-center gap-2">
+                <Palette className="w-4 h-4" />
+                <span className="hidden sm:inline">Theme</span>
+              </TabsTrigger>
             </TabsList>
             
             <div className="max-h-[70vh] overflow-y-auto p-6">
@@ -205,6 +210,9 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               </TabsContent>
               <TabsContent value="blog" className="mt-0">
                 <BlogsEditor />
+              </TabsContent>
+              <TabsContent value="theme" className="mt-0">
+                <ThemeSelector />
               </TabsContent>
             </div>
           </Tabs>
