@@ -1,86 +1,86 @@
-export interface EducationItem {
-  id: string;
-  degree: string;
-  institution: string;
-  year: string;
-  location: string;
-  description: string;
-  advisor?: string;
-  achievements: string[];
-  universityLogo?: string;
-}
-
-export interface Certification {
+export interface BlogPost {
   id: string;
   title: string;
-  organization: string;
-  year: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  publishDate: string;
+  lastModified: string;
+  status: 'Draft' | 'Published';
+  keywords: string[];
+  readingTime: number;
+  featuredImage?: string;
+  videoUrl?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  categoryId?: string; // Add categoryId field
+}
+
+export interface About {
+  name: string;
+  title: string;
+  bio: string;
+  email: string;
+  phone: string;
+  profileImage: string;
+  location: string;
+  socialLinks: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+    orcid?: string;
+    googleScholar?: string;
+  };
+  researchInterests: string[];
+  officeHours: string;
+  cv: string;
+}
+
+export interface EducationItem {
+  id: string;
+  institution: string;
+  degree: string;
+  field: string;
+  startYear: string;
+  endYear: string;
+  description: string;
+  location: string;
+  achievements: string[];
 }
 
 export interface Project {
   id: string;
   title: string;
   description: string;
+  status: 'Ongoing' | 'Completed' | 'Planned';
+  startDate: string;
+  endDate?: string;
   technologies: string[];
-  duration: string;
-  collaborators: number;
-  status: 'Completed' | 'In Progress' | 'On Hold';
-  achievements: string[];
-  links: {
-    demo?: string;
-    github?: string;
-    paper?: string;
-    video?: string;
-  };
-}
-
-export interface Textbook {
-  title: string;
-  author: string;
-  edition: string;
-  isbn?: string;
-}
-
-export interface CourseLink {
-  name: string;
-  url: string;
+  role: string;
+  funding?: string;
+  collaborators: string[];
+  outcomes: string[];
+  repository?: string;
+  website?: string;
+  publications: string[];
 }
 
 export interface Course {
   id: string;
-  title: string;
   code: string;
+  title: string;
+  description: string;
   level: 'Undergraduate' | 'Graduate';
   credits: number;
   semester: string;
+  year: string;
+  syllabus?: string;
+  materials: string[];
+  prerequisites: string[];
+  objectives: string[];
+  schedule: string;
   enrollment: number;
   maxEnrollment: number;
-  description: string;
-  learningOutcomes: string[];
-  schedule: {
-    days: string;
-    time: string;
-    location: string;
-  };
-  lessons: Lesson[];
-  online?: boolean;
-  industry?: string;
-  textbooks?: Textbook[];
-  softwareTools?: string[];
-  courseLinks?: CourseLink[];
-}
-
-export interface Lesson {
-  week: number;
-  title: string;
-  topics: string[];
-  resources: Resource[];
-}
-
-export interface Resource {
-  name: string;
-  url: string;
-  type?: 'learning' | 'download' | 'video' | 'document';
 }
 
 export interface ResearchPaper {
@@ -92,84 +92,50 @@ export interface ResearchPaper {
   doi?: string;
   abstract: string;
   keywords: string[];
-  citations: number;
+  type: 'Journal' | 'Conference' | 'Book Chapter' | 'Preprint';
+  status: 'Published' | 'In Press' | 'Under Review' | 'In Preparation';
+  citations?: number;
+  url?: string;
+  pdf?: string;
+  bibtex?: string;
 }
 
-export interface ProjectOpening {
+export interface JobOpening {
   id: string;
   title: string;
   description: string;
   requirements: string[];
+  responsibilities: string[];
+  type: 'PhD' | 'Postdoc' | 'Research Assistant' | 'Visiting Scholar';
   duration: string;
-  type: 'Research' | 'Thesis' | 'Independent Study';
-  level: 'Undergraduate' | 'Graduate' | 'PhD';
-  status: 'Open' | 'Filled' | 'Closed';
+  startDate: string;
   applicationDeadline: string;
-}
-
-export interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  keywords: string[];
-  author: string;
-  publishDate: string;
-  lastModified: string;
-  status: 'Draft' | 'Published';
-  seoTitle?: string;
-  seoDescription?: string;
-  featuredImage?: string;
-  videoUrl?: string;
-  readingTime: number;
+  funding: string;
+  location: string;
+  qualifications: string[];
+  contact: string;
+  status: 'Open' | 'Closed' | 'Filled';
 }
 
 export interface GalleryItem {
   id: string;
   title: string;
   description: string;
-  mediaType: 'photo' | 'video';
-  photo?: string;
-  video?: string;
-  uploadType: 'url' | 'upload';
+  imageUrl: string;
+  category: 'Research' | 'Teaching' | 'Conference' | 'Lab' | 'Awards' | 'Other';
   date: string;
-  eventType: 'Meeting' | 'Conference' | 'Session' | 'Workshop' | 'Seminar' | 'Other';
-  location: {
-    name: string;
-    latitude?: number;
-    longitude?: number;
-  };
   tags: string[];
-}
-
-export interface AboutInfo {
-  name: string;
-  title: string;
-  bio: string;
-  expertise: string[];
-  profilePicture?: string;
-  contact: {
-    email: string;
-    phone?: string;
-    office: string;
-    officeHours: string;
-  };
-  socialLinks: {
-    linkedin?: string;
-    researchGate?: string;
-    googleScholar?: string;
-    orcid?: string;
-  };
+  caption?: string;
+  location?: string;
 }
 
 export interface PortalData {
-  about: AboutInfo;
+  about: About;
   education: EducationItem[];
-  certifications: Certification[];
   projects: Project[];
   courses: Course[];
   research: ResearchPaper[];
-  openings: ProjectOpening[];
+  openings: JobOpening[];
   blogs: BlogPost[];
   gallery: GalleryItem[];
 }

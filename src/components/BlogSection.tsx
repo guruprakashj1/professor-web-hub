@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Calendar, Clock, Tag, ArrowLeft, ArrowRight, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,16 +5,30 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSupabasePortalData } from '@/hooks/useSupabasePortalData';
+import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/portalData';
+
+interface BlogCategory {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+}
 
 const BlogSection = () => {
   const [filteredBlogs, setFilteredBlogs] = useState<BlogPost[]>([]);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [allKeywords, setAllKeywords] = useState<string[]>([]);
   const [selectedKeyword, setSelectedKeyword] = useState<string>('');
   
   const { data, loading } = useSupabasePortalData();
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     if (data?.blogs) {
@@ -32,12 +45,26 @@ const BlogSection = () => {
       });
       
       setAllKeywords(Array.from(keywords).sort());
-      filterBlogs(sortedBlogs, searchQuery, selectedKeyword);
+      filterBlogs(sortedBlogs, searchQuery, selectedCategory, selectedKeyword);
       console.log('Loaded published blogs:', sortedBlogs);
     }
-  }, [data?.blogs, searchQuery, selectedKeyword]);
+  }, [data?.blogs, searchQuery, selectedCategory, selectedKeyword]);
 
-  const filterBlogs = (blogs: BlogPost[], search: string, keyword: string) => {
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_categories')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const filterBlogs = (blogs: BlogPost[], search: string, category: string, keyword: string) => {
     let filtered = blogs;
 
     if (search) {
@@ -50,6 +77,10 @@ const BlogSection = () => {
       );
     }
 
+    if (category) {
+      filtered = filtered.filter(blog => blog.categoryId === category);
+    }
+
     if (keyword) {
       filtered = filtered.filter(blog => 
         blog.keywords.includes(keyword)
@@ -57,6 +88,10 @@ const BlogSection = () => {
     }
 
     setFilteredBlogs(filtered);
+  };
+
+  const getCategoryById = (categoryId: string) => {
+    return categories.find(cat => cat.id === categoryId);
   };
 
   const handleBlogSelect = (blog: BlogPost) => {
@@ -126,6 +161,7 @@ const BlogSection = () => {
     const currentIndex = getCurrentBlogIndex();
     const hasPrevious = currentIndex > 0;
     const hasNext = currentIndex < filteredBlogs.length - 1;
+    const category = selectedBlog.categoryId ? getCategoryById(selectedBlog.categoryId) : null;
 
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -152,6 +188,15 @@ const BlogSection = () => {
                 <span className="font-light">{selectedBlog.readingTime} min read</span>
               </div>
               <span className="font-light">By {selectedBlog.author}</span>
+              {category && (
+                <Badge 
+                  variant="outline" 
+                  className="font-light"
+                  style={{ borderColor: category.color, color: category.color }}
+                >
+                  {category.name}
+                </Badge>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">
@@ -260,6 +305,45 @@ const BlogSection = () => {
           />
         </div>
 
+        {/* Category Filter */}
+        {categories.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-light text-black mb-3">Categories</h3>
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                variant={selectedCategory === '' ? "default" : "outline"}
+                className={`cursor-pointer font-light ${
+                  selectedCategory === '' 
+                    ? "bg-black text-white hover:bg-gray-800 border-black" 
+                    : "border-gray-300 text-gray-700 hover:text-black hover:border-black"
+                }`}
+                onClick={() => setSelectedCategory('')}
+              >
+                All Categories
+              </Badge>
+              {categories.map((category) => (
+                <Badge
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  className={`cursor-pointer font-light ${
+                    selectedCategory === category.id 
+                      ? "text-white hover:opacity-80"
+                      : "text-gray-700 hover:text-black hover:border-black"
+                  }`}
+                  style={{
+                    backgroundColor: selectedCategory === category.id ? category.color : 'transparent',
+                    borderColor: category.color,
+                    color: selectedCategory === category.id ? 'white' : category.color
+                  }}
+                  onClick={() => setSelectedCategory(selectedCategory === category.id ? '' : category.id)}
+                >
+                  {category.name}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Keyword Cloud */}
         {allKeywords.length > 0 && (
           <div className="mb-6">
@@ -300,66 +384,78 @@ const BlogSection = () => {
         {filteredBlogs.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <p className="text-gray-600 text-lg font-light">
-              {searchQuery || selectedKeyword ? 'No blog posts found matching your criteria.' : 'No blog posts available.'}
+              {searchQuery || selectedCategory || selectedKeyword ? 'No blog posts found matching your criteria.' : 'No blog posts available.'}
             </p>
           </div>
         ) : (
-          filteredBlogs.map((blog) => (
-            <Card 
-              key={blog.id} 
-              className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-black bg-white hover:scale-105"
-              onClick={() => handleBlogSelect(blog)}
-            >
-              {blog.featuredImage && (
-                <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                  <img 
-                    src={blog.featuredImage} 
-                    alt={blog.title}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 grayscale"
-                  />
-                </div>
-              )}
-              
-              <CardHeader>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                  <Calendar className="w-4 h-4" />
-                  <span className="font-light">{formatDate(blog.publishDate)}</span>
-                  <Clock className="w-4 h-4 ml-2" />
-                  <span className="font-light">{blog.readingTime} min read</span>
-                </div>
-                
-                <CardTitle className="line-clamp-2 hover:text-black transition-colors font-light text-gray-900">
-                  {blog.title}
-                </CardTitle>
-                
-                <CardDescription className="line-clamp-3 font-light text-gray-700">
-                  {blog.excerpt}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {blog.keywords.slice(0, 3).map((keyword) => (
-                    <Badge key={keyword} variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
-                      {keyword}
-                    </Badge>
-                  ))}
-                  {blog.keywords.length > 3 && (
-                    <Badge variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
-                      +{blog.keywords.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-                
-                {blog.videoUrl && (
-                  <div className="flex items-center gap-1 text-sm text-black">
-                    <Play className="w-4 h-4" />
-                    <span className="font-light">Video Content</span>
+          filteredBlogs.map((blog) => {
+            const category = blog.categoryId ? getCategoryById(blog.categoryId) : null;
+            return (
+              <Card 
+                key={blog.id} 
+                className="cursor-pointer hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-black bg-white hover:scale-105"
+                onClick={() => handleBlogSelect(blog)}
+              >
+                {blog.featuredImage && (
+                  <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                    <img 
+                      src={blog.featuredImage} 
+                      alt={blog.title}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 grayscale"
+                    />
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          ))
+                
+                <CardHeader>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                    <Calendar className="w-4 h-4" />
+                    <span className="font-light">{formatDate(blog.publishDate)}</span>
+                    <Clock className="w-4 h-4 ml-2" />
+                    <span className="font-light">{blog.readingTime} min read</span>
+                    {category && (
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs font-light ml-auto"
+                        style={{ borderColor: category.color, color: category.color }}
+                      >
+                        {category.name}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <CardTitle className="line-clamp-2 hover:text-black transition-colors font-light text-gray-900">
+                    {blog.title}
+                  </CardTitle>
+                  
+                  <CardDescription className="line-clamp-3 font-light text-gray-700">
+                    {blog.excerpt}
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {blog.keywords.slice(0, 3).map((keyword) => (
+                      <Badge key={keyword} variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
+                        {keyword}
+                      </Badge>
+                    ))}
+                    {blog.keywords.length > 3 && (
+                      <Badge variant="secondary" className="text-xs bg-gray-100 text-black border border-gray-200 font-light">
+                        +{blog.keywords.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {blog.videoUrl && (
+                    <div className="flex items-center gap-1 text-sm text-black">
+                      <Play className="w-4 h-4" />
+                      <span className="font-light">Video Content</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

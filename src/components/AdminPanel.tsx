@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool, Camera, MessageCircle, Palette } from 'lucide-react';
+import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool, Camera, MessageCircle, Palette, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,7 @@ import CoursesEditor from './admin/CoursesEditor';
 import ResearchEditor from './admin/ResearchEditor';
 import OpeningsEditor from './admin/OpeningsEditor';
 import BlogsEditor from './admin/BlogsEditor';
+import BlogCategoriesEditor from './admin/BlogCategoriesEditor';
 import GalleryEditor from './admin/GalleryEditor';
 import ContactMessagesEditor from './admin/ContactMessagesEditor';
 import ThemeSelector from './admin/ThemeSelector';
@@ -140,7 +141,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-            <TabsList className="grid w-full grid-cols-10 h-12">
+            <TabsList className="grid w-full grid-cols-11 h-12">
               <TabsTrigger value="about" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">About</span>
@@ -177,6 +178,10 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                 <PenTool className="w-4 h-4" />
                 <span className="hidden sm:inline">Blog</span>
               </TabsTrigger>
+              <TabsTrigger value="blog-categories" className="flex items-center gap-2">
+                <Tags className="w-4 h-4" />
+                <span className="hidden sm:inline">Categories</span>
+              </TabsTrigger>
               <TabsTrigger value="theme" className="flex items-center gap-2">
                 <Palette className="w-4 h-4" />
                 <span className="hidden sm:inline">Theme</span>
@@ -210,6 +215,9 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               </TabsContent>
               <TabsContent value="blog" className="mt-0">
                 <BlogsEditor />
+              </TabsContent>
+              <TabsContent value="blog-categories" className="mt-0">
+                <BlogCategoriesEditor />
               </TabsContent>
               <TabsContent value="theme" className="mt-0">
                 <ThemeSelector />

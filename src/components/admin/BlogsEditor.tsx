@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,10 +9,19 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BlogPost } from '@/types/portalData';
 import { useSupabasePortalData } from '@/hooks/useSupabasePortalData';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+interface BlogCategory {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+}
 
 const BlogsEditor = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const { data, loading, createItem, updateItem, deleteItem, refreshData } = useSupabasePortalData();
@@ -28,6 +36,24 @@ const BlogsEditor = () => {
       console.log('Loaded blogs from Supabase:', sortedBlogs);
     }
   }, [data?.blogs]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_categories')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const calculateReadingTime = (content: string): number => {
     const wordsPerMinute = 200;
@@ -120,6 +146,10 @@ const BlogsEditor = () => {
     });
   };
 
+  const getCategoryById = (categoryId: string) => {
+    return categories.find(cat => cat.id === categoryId);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -132,6 +162,7 @@ const BlogsEditor = () => {
     return (
       <BlogForm
         blog={editingBlog}
+        categories={categories}
         onSave={handleSave}
         onCancel={handleCancelEdit}
       />
@@ -159,63 +190,74 @@ const BlogsEditor = () => {
             </CardContent>
           </Card>
         ) : (
-          blogs.map((blog) => (
-            <Card key={blog.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CardTitle className="text-lg">{blog.title}</CardTitle>
-                      <Badge variant={blog.status === 'Published' ? 'default' : 'secondary'}>
-                        {blog.status === 'Published' ? (
-                          <><Eye className="w-3 h-3 mr-1" />Published</>
-                        ) : (
-                          <><EyeOff className="w-3 h-3 mr-1" />Draft</>
+          blogs.map((blog) => {
+            const category = blog.categoryId ? getCategoryById(blog.categoryId) : null;
+            return (
+              <Card key={blog.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CardTitle className="text-lg">{blog.title}</CardTitle>
+                        <Badge variant={blog.status === 'Published' ? 'default' : 'secondary'}>
+                          {blog.status === 'Published' ? (
+                            <><Eye className="w-3 h-3 mr-1" />Published</>
+                          ) : (
+                            <><EyeOff className="w-3 h-3 mr-1" />Draft</>
+                          )}
+                        </Badge>
+                        {category && (
+                          <Badge 
+                            variant="outline" 
+                            style={{ borderColor: category.color, color: category.color }}
+                          >
+                            {category.name}
+                          </Badge>
                         )}
-                      </Badge>
+                      </div>
+                      <CardDescription className="line-clamp-2">
+                        {blog.excerpt}
+                      </CardDescription>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                        <span>Published: {formatDate(blog.publishDate)}</span>
+                        <span>Reading time: {blog.readingTime} min</span>
+                        <span>Keywords: {blog.keywords.length}</span>
+                      </div>
                     </div>
-                    <CardDescription className="line-clamp-2">
-                      {blog.excerpt}
-                    </CardDescription>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span>Published: {formatDate(blog.publishDate)}</span>
-                      <span>Reading time: {blog.readingTime} min</span>
-                      <span>Keywords: {blog.keywords.length}</span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(blog)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(blog.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(blog)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(blog.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              {blog.keywords.length > 0 && (
-                <CardContent>
-                  <div className="flex flex-wrap gap-1">
-                    {blog.keywords.map((keyword) => (
-                      <Badge key={keyword} variant="outline" className="text-xs">
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          ))
+                </CardHeader>
+                
+                {blog.keywords.length > 0 && (
+                  <CardContent>
+                    <div className="flex flex-wrap gap-1">
+                      {blog.keywords.map((keyword) => (
+                        <Badge key={keyword} variant="outline" className="text-xs">
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })
         )}
       </div>
     </div>
@@ -224,11 +266,12 @@ const BlogsEditor = () => {
 
 interface BlogFormProps {
   blog?: BlogPost | null;
+  categories: BlogCategory[];
   onSave: (blog: Omit<BlogPost, 'id' | 'lastModified'>) => void;
   onCancel: () => void;
 }
 
-const BlogForm = ({ blog, onSave, onCancel }: BlogFormProps) => {
+const BlogForm = ({ blog, categories, onSave, onCancel }: BlogFormProps) => {
   const [formData, setFormData] = useState({
     title: blog?.title || '',
     excerpt: blog?.excerpt || '',
@@ -240,7 +283,8 @@ const BlogForm = ({ blog, onSave, onCancel }: BlogFormProps) => {
     seoTitle: blog?.seoTitle || '',
     seoDescription: blog?.seoDescription || '',
     featuredImage: blog?.featuredImage || '',
-    videoUrl: blog?.videoUrl || ''
+    videoUrl: blog?.videoUrl || '',
+    categoryId: blog?.categoryId || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -290,6 +334,32 @@ const BlogForm = ({ blog, onSave, onCancel }: BlogFormProps) => {
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
               />
+            </div>
+
+            <div>
+              <Label htmlFor="categoryId">Category</Label>
+              <Select 
+                value={formData.categoryId} 
+                onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No Category</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
