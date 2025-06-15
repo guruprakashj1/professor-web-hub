@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool, Camera, Mail } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import OpeningsSection from '@/components/OpeningsSection';
 import BlogSection from '@/components/BlogSection';
 import GallerySection from '@/components/GallerySection';
 import ContactSection from '@/components/ContactSection';
+import DynamicQuotes from '@/components/DynamicQuotes';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
@@ -37,7 +39,12 @@ const Index = () => {
       case 'blog':
         return <BlogSection />;
       default:
-        return <HeroSection setActiveSection={setActiveSection} />;
+        return (
+          <>
+            <HeroSection setActiveSection={setActiveSection} />
+            <DynamicQuotes />
+          </>
+        );
     }
   };
 
