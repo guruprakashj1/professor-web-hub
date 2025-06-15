@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,43 +9,39 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BlogPost } from '@/types/portalData';
-import { BlogStorageService } from '@/utils/blogStorage';
+import { useSupabasePortalData } from '@/hooks/useSupabasePortalData';
 import { useToast } from '@/hooks/use-toast';
 
 const BlogsEditor = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, createItem, updateItem, deleteItem, refreshData } = useSupabasePortalData();
   const { toast } = useToast();
-  
-  const blogStorage = BlogStorageService.getInstance();
 
   useEffect(() => {
-    loadBlogs();
-  }, []);
-
-  const loadBlogs = async () => {
-    try {
-      setLoading(true);
-      const allBlogs = await blogStorage.loadAllBlogs();
-      setBlogs(allBlogs.sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()));
-      console.log('Loaded all blogs for admin:', allBlogs);
-    } catch (error) {
-      console.error('Error loading blogs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load blog posts.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+    if (data?.blogs) {
+      const sortedBlogs = [...data.blogs].sort((a, b) => 
+        new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+      );
+      setBlogs(sortedBlogs);
+      console.log('Loaded blogs from Supabase:', sortedBlogs);
     }
+  }, [data?.blogs]);
+
+  const calculateReadingTime = (content: string): number => {
+    const wordsPerMinute = 200;
+    const words = content.trim().split(/\s+/).length;
+    return Math.ceil(words / wordsPerMinute);
+  };
+
+  const generateId = (): string => {
+    return crypto.randomUUID();
   };
 
   const handleSave = async (blog: Omit<BlogPost, 'id' | 'lastModified'>) => {
     try {
-      const readingTime = blogStorage.calculateReadingTime(blog.content);
+      const readingTime = calculateReadingTime(blog.content);
       
       if (editingBlog) {
         const updatedBlog: BlogPost = {
@@ -53,7 +50,7 @@ const BlogsEditor = () => {
           readingTime,
           lastModified: new Date().toISOString()
         };
-        await blogStorage.saveBlog(updatedBlog);
+        await updateItem<BlogPost>('blogs', editingBlog.id, updatedBlog);
         toast({
           title: "Blog Updated",
           description: "Blog post has been successfully updated.",
@@ -61,11 +58,11 @@ const BlogsEditor = () => {
       } else {
         const newBlog: BlogPost = {
           ...blog,
-          id: blogStorage.generateId(),
+          id: generateId(),
           readingTime,
           lastModified: new Date().toISOString()
         };
-        await blogStorage.saveBlog(newBlog);
+        await createItem<BlogPost>('blogs', newBlog);
         toast({
           title: "Blog Created",
           description: "New blog post has been successfully created.",
@@ -74,8 +71,9 @@ const BlogsEditor = () => {
       
       setEditingBlog(null);
       setIsAdding(false);
-      await loadBlogs();
+      await refreshData();
     } catch (error) {
+      console.error('Error saving blog:', error);
       toast({
         title: "Error",
         description: "Failed to save blog post.",
@@ -87,13 +85,14 @@ const BlogsEditor = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this blog post?')) {
       try {
-        await blogStorage.deleteBlog(id);
+        await deleteItem('blogs', id);
         toast({
           title: "Blog Deleted",
           description: "Blog post has been successfully deleted.",
         });
-        await loadBlogs();
+        await refreshData();
       } catch (error) {
+        console.error('Error deleting blog:', error);
         toast({
           title: "Error",
           description: "Failed to delete blog post.",

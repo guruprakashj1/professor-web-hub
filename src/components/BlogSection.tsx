@@ -1,48 +1,58 @@
+
 import { useState, useEffect } from 'react';
 import { Search, Calendar, Clock, Tag, ArrowLeft, ArrowRight, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BlogStorageService } from '@/utils/blogStorage';
+import { useSupabasePortalData } from '@/hooks/useSupabasePortalData';
 import { BlogPost } from '@/types/portalData';
 
 const BlogSection = () => {
-  const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [filteredBlogs, setFilteredBlogs] = useState<BlogPost[]>([]);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [allKeywords, setAllKeywords] = useState<string[]>([]);
   const [selectedKeyword, setSelectedKeyword] = useState<string>('');
   
-  const blogStorage = BlogStorageService.getInstance();
+  const { data, loading } = useSupabasePortalData();
 
   useEffect(() => {
-    loadBlogs();
-  }, []);
+    if (data?.blogs) {
+      // Only show published blogs
+      const publishedBlogs = data.blogs.filter(blog => blog.status === 'Published');
+      const sortedBlogs = publishedBlogs.sort((a, b) => 
+        new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+      );
+      
+      // Extract all unique keywords
+      const keywords = new Set<string>();
+      publishedBlogs.forEach(blog => {
+        blog.keywords.forEach(keyword => keywords.add(keyword));
+      });
+      
+      setAllKeywords(Array.from(keywords).sort());
+      filterBlogs(sortedBlogs, searchQuery, selectedKeyword);
+      console.log('Loaded published blogs:', sortedBlogs);
+    }
+  }, [data?.blogs, searchQuery, selectedKeyword]);
 
-  useEffect(() => {
-    filterBlogs();
-  }, [blogs, searchQuery, selectedKeyword]);
-
-  const loadBlogs = async () => {
-    const publishedBlogs = await blogStorage.getPublishedBlogs();
-    const keywords = await blogStorage.getAllKeywords();
-    setBlogs(publishedBlogs);
-    setAllKeywords(keywords);
-    console.log('Loaded blogs:', publishedBlogs);
-  };
-
-  const filterBlogs = async () => {
+  const filterBlogs = (blogs: BlogPost[], search: string, keyword: string) => {
     let filtered = blogs;
 
-    if (searchQuery) {
-      filtered = await blogStorage.searchBlogs(searchQuery);
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter(blog => 
+        blog.title.toLowerCase().includes(searchLower) ||
+        blog.excerpt.toLowerCase().includes(searchLower) ||
+        blog.content.toLowerCase().includes(searchLower) ||
+        blog.keywords.some(k => k.toLowerCase().includes(searchLower))
+      );
     }
 
-    if (selectedKeyword) {
+    if (keyword) {
       filtered = filtered.filter(blog => 
-        blog.keywords.includes(selectedKeyword)
+        blog.keywords.includes(keyword)
       );
     }
 
@@ -103,6 +113,14 @@ const BlogSection = () => {
     }
     return url;
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg font-light text-gray-900">Loading blogs...</div>
+      </div>
+    );
+  }
 
   if (selectedBlog) {
     const currentIndex = getCurrentBlogIndex();
