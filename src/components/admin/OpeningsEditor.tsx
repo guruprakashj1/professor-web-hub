@@ -24,14 +24,20 @@ const OpeningsEditor = () => {
   // Load application counts for each opening
   useEffect(() => {
     if (data?.openings) {
-      const counts: { [key: string]: number } = {};
-      data.openings.forEach(opening => {
-        const applications = applicationService.getApplicationsByOpening(opening.id);
-        counts[opening.id] = applications.length;
-      });
-      setApplicationCounts(counts);
+      loadApplicationCounts();
     }
   }, [data?.openings]);
+
+  const loadApplicationCounts = async () => {
+    if (data?.openings) {
+      const counts: { [key: string]: number } = {};
+      for (const opening of data.openings) {
+        const applications = await applicationService.getApplicationsByOpening(opening.id);
+        counts[opening.id] = applications.length;
+      }
+      setApplicationCounts(counts);
+    }
+  };
 
   // Sync form data when editing an existing item
   useEffect(() => {

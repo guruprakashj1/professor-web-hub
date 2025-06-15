@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Calendar, Clock, Tag, ArrowLeft, ArrowRight, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,19 +25,19 @@ const BlogSection = () => {
     filterBlogs();
   }, [blogs, searchQuery, selectedKeyword]);
 
-  const loadBlogs = () => {
-    const publishedBlogs = blogStorage.getPublishedBlogs();
-    const keywords = blogStorage.getAllKeywords();
+  const loadBlogs = async () => {
+    const publishedBlogs = await blogStorage.getPublishedBlogs();
+    const keywords = await blogStorage.getAllKeywords();
     setBlogs(publishedBlogs);
     setAllKeywords(keywords);
     console.log('Loaded blogs:', publishedBlogs);
   };
 
-  const filterBlogs = () => {
+  const filterBlogs = async () => {
     let filtered = blogs;
 
     if (searchQuery) {
-      filtered = blogStorage.searchBlogs(searchQuery);
+      filtered = await blogStorage.searchBlogs(searchQuery);
     }
 
     if (selectedKeyword) {

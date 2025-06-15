@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,22 +16,22 @@ const ContactMessagesEditor = () => {
     loadMessages();
   }, []);
 
-  const loadMessages = () => {
+  const loadMessages = async () => {
     const contactService = ContactStorageService.getInstance();
-    const loadedMessages = contactService.loadMessages();
+    const loadedMessages = await contactService.loadMessages();
     setMessages(loadedMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
   };
 
-  const handleMarkAsRead = (id: string) => {
+  const handleMarkAsRead = async (id: string) => {
     const contactService = ContactStorageService.getInstance();
-    contactService.markAsRead(id);
+    await contactService.markAsRead(id);
     loadMessages();
   };
 
-  const handleDeleteMessage = (id: string) => {
+  const handleDeleteMessage = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
       const contactService = ContactStorageService.getInstance();
-      contactService.deleteMessage(id);
+      await contactService.deleteMessage(id);
       loadMessages();
       setSelectedMessage(null);
       toast({

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,14 +23,14 @@ const ApplicationsViewer = ({ openingId, openingTitle, onClose }: ApplicationsVi
     loadApplications();
   }, [openingId]);
 
-  const loadApplications = () => {
-    const apps = applicationService.getApplicationsByOpening(openingId);
+  const loadApplications = async () => {
+    const apps = await applicationService.getApplicationsByOpening(openingId);
     setApplications(apps);
   };
 
-  const handleStatusUpdate = (applicationId: string, newStatus: ApplicationData['status']) => {
+  const handleStatusUpdate = async (applicationId: string, newStatus: ApplicationData['status']) => {
     try {
-      applicationService.updateApplicationStatus(applicationId, newStatus);
+      await applicationService.updateApplicationStatus(applicationId, newStatus);
       loadApplications();
       toast({
         title: "Status Updated",
