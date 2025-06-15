@@ -113,18 +113,36 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const root = document.documentElement;
+    console.log('Applying theme:', currentTheme.name);
+    
+    // Apply all theme colors to CSS custom properties
     root.style.setProperty('--primary', currentTheme.primary);
+    root.style.setProperty('--primary-foreground', currentTheme.background);
     root.style.setProperty('--secondary', currentTheme.secondary);
+    root.style.setProperty('--secondary-foreground', currentTheme.foreground);
     root.style.setProperty('--accent', currentTheme.accent);
+    root.style.setProperty('--accent-foreground', currentTheme.foreground);
     root.style.setProperty('--background', currentTheme.background);
     root.style.setProperty('--foreground', currentTheme.foreground);
     root.style.setProperty('--muted', currentTheme.muted);
+    root.style.setProperty('--muted-foreground', currentTheme.foreground);
     root.style.setProperty('--border', currentTheme.border);
+    root.style.setProperty('--input', currentTheme.border);
+    root.style.setProperty('--ring', currentTheme.primary);
+    
+    // Also apply to card colors for consistency
+    root.style.setProperty('--card', currentTheme.background);
+    root.style.setProperty('--card-foreground', currentTheme.foreground);
+    root.style.setProperty('--popover', currentTheme.background);
+    root.style.setProperty('--popover-foreground', currentTheme.foreground);
+    
+    console.log('Theme applied successfully');
   }, [currentTheme]);
 
   const setTheme = (themeId: string) => {
     const theme = themes.find(t => t.id === themeId);
     if (theme) {
+      console.log('Setting theme to:', theme.name);
       setCurrentTheme(theme);
       localStorage.setItem('selected-theme', themeId);
     }
