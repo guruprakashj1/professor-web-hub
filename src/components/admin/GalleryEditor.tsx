@@ -1,20 +1,20 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Edit, Plus, MapPin, Calendar, Camera, Video, Upload, Link } from 'lucide-react';
+import { Trash2, Edit, Plus, MapPin, Calendar, Camera, Video } from 'lucide-react';
 import { usePortalData } from '@/hooks/usePortalData';
 import { useToast } from '@/hooks/use-toast';
 import { GalleryItem } from '@/types/portalData';
-import { uploadFile, validateMediaFile } from '@/utils/fileUpload';
+import FileUploadPreview from './FileUploadPreview';
 
 const GalleryEditor = () => {
   const { data, createItem, updateItem, deleteItem } = usePortalData();
   const { toast } = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState<Omit<GalleryItem, 'id'>>({
     title: '',
     description: '',
@@ -34,38 +34,10 @@ const GalleryEditor = () => {
 
   const gallery = data?.gallery || [];
 
-  const handleFileUpload = async (file: File) => {
-    try {
-      setUploading(true);
-      validateMediaFile(file, formData.mediaType);
-      
-      const uploadedUrl = await uploadFile(file, formData.mediaType);
-      
-      if (formData.mediaType === 'photo') {
-        setFormData({ ...formData, photo: uploadedUrl });
-      } else {
-        setFormData({ ...formData, video: uploadedUrl });
-      }
-      
-      toast({
-        title: "File Uploaded",
-        description: `${formData.mediaType} has been uploaded successfully.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to upload file.",
-        variant: "destructive"
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields based on media type and upload type
+    // Validate required fields based on media type
     const mediaUrl = formData.mediaType === 'photo' ? formData.photo : formData.video;
     if (!mediaUrl) {
       toast({
@@ -108,7 +80,7 @@ const GalleryEditor = () => {
       mediaType: item.mediaType,
       photo: item.photo || '',
       video: item.video || '',
-      uploadType: item.uploadType,
+      uploadType: item.uploadType || 'url',
       date: item.date,
       eventType: item.eventType,
       location: item.location,
@@ -169,6 +141,14 @@ const GalleryEditor = () => {
     });
   };
 
+  const handleMediaChange = (value: string | undefined) => {
+    if (formData.mediaType === 'photo') {
+      setFormData({ ...formData, photo: value || '' });
+    } else {
+      setFormData({ ...formData, video: value || '' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -218,83 +198,29 @@ const GalleryEditor = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Media Type</label>
-                <Select value={formData.mediaType} onValueChange={handleMediaTypeChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="photo">Photo</SelectItem>
-                    <SelectItem value="video">Video</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Upload Method</label>
-                <Select value={formData.uploadType} onValueChange={(value: any) => setFormData({ ...formData, uploadType: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="url">URL</SelectItem>
-                    <SelectItem value="upload">File Upload</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Media Upload Section */}
             <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                {formData.mediaType === 'photo' ? <Camera className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                {formData.mediaType === 'photo' ? 'Photo' : 'Video'}
-              </label>
-              
-              {formData.uploadType === 'url' ? (
-                <Input
-                  value={formData.mediaType === 'photo' ? formData.photo : formData.video}
-                  onChange={(e) => {
-                    if (formData.mediaType === 'photo') {
-                      setFormData({ ...formData, photo: e.target.value });
-                    } else {
-                      setFormData({ ...formData, video: e.target.value });
-                    }
-                  }}
-                  placeholder={`https://example.com/${formData.mediaType}.${formData.mediaType === 'photo' ? 'jpg' : 'mp4'}`}
-                  required
-                />
-              ) : (
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept={formData.mediaType === 'photo' ? 'image/*' : 'video/*'}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleFileUpload(file);
-                      }
-                    }}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-                    disabled={uploading}
-                  />
-                  {uploading && (
-                    <div className="text-sm text-gray-500 flex items-center gap-2">
-                      <Upload className="w-4 h-4 animate-spin" />
-                      Uploading...
-                    </div>
-                  )}
-                  {(formData.photo || formData.video) && (
-                    <div className="text-sm text-green-600 flex items-center gap-2">
-                      <Upload className="w-4 h-4" />
-                      File uploaded successfully
-                    </div>
-                  )}
-                </div>
-              )}
+              <label className="text-sm font-medium">Media Type</label>
+              <Select value={formData.mediaType} onValueChange={handleMediaTypeChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="photo">Photo</SelectItem>
+                  <SelectItem value="video">Video</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Media Upload Section using FileUploadPreview */}
+            <FileUploadPreview
+              label={formData.mediaType === 'photo' ? 'Photo' : 'Video'}
+              value={formData.mediaType === 'photo' ? formData.photo : formData.video}
+              onChange={handleMediaChange}
+              accept={formData.mediaType === 'photo' ? 'image/*' : 'video/*'}
+              maxSize={formData.mediaType === 'photo' ? 10 : 100}
+              showUrlInput={true}
+              previewClassName="w-full h-48"
+            />
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
@@ -371,7 +297,7 @@ const GalleryEditor = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" disabled={uploading}>
+              <Button type="submit">
                 {editingId ? 'Update Item' : 'Add Item'}
               </Button>
               {editingId && (
@@ -399,38 +325,63 @@ const GalleryEditor = () => {
               <Card key={item.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h5 className="font-medium">{item.title}</h5>
-                        <span className="px-2 py-1 bg-gray-100 text-xs rounded flex items-center gap-1">
-                          {item.mediaType === 'photo' ? <Camera className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-                          {item.eventType}
-                        </span>
-                        <span className="px-2 py-1 bg-blue-100 text-xs rounded">
-                          {item.uploadType}
-                        </span>
+                    <div className="flex gap-4">
+                      {/* Preview thumbnail */}
+                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        {item.mediaType === 'photo' && item.photo ? (
+                          <img 
+                            src={item.photo} 
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : item.mediaType === 'video' && item.video ? (
+                          <video 
+                            src={item.video}
+                            className="w-full h-full object-cover"
+                            muted
+                          />
+                        ) : (
+                          <div className="text-gray-400">
+                            {item.mediaType === 'photo' ? <Camera className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {item.date}
+                      
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-medium">{item.title}</h5>
+                          <span className="px-2 py-1 bg-gray-100 text-xs rounded flex items-center gap-1">
+                            {item.mediaType === 'photo' ? <Camera className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+                            {item.eventType}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {item.location.name}
+                        <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {item.date}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {item.location.name}
+                          </div>
                         </div>
+                        {item.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {item.tags.map((tag, index) => (
+                              <span key={index} className="px-1 py-0.5 bg-gray-100 text-xs rounded">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      {item.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {item.tags.map((tag, index) => (
-                            <span key={index} className="px-1 py-0.5 bg-gray-100 text-xs rounded">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
                     </div>
+                    
                     <div className="flex gap-2 ml-4">
                       <Button size="sm" variant="outline" onClick={() => handleEdit(item)}>
                         <Edit className="w-4 h-4" />
