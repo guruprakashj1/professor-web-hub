@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool, Camera, Mail } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,10 +13,8 @@ import BlogSection from '@/components/BlogSection';
 import GallerySection from '@/components/GallerySection';
 import ContactSection from '@/components/ContactSection';
 import DynamicQuotes from '@/components/DynamicQuotes';
-
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
-
   const renderSection = () => {
     switch (activeSection) {
       case 'about':
@@ -39,112 +36,86 @@ const Index = () => {
       case 'blog':
         return <BlogSection />;
       default:
-        return (
-          <>
+        return <>
             <HeroSection setActiveSection={setActiveSection} />
             <DynamicQuotes />
-          </>
-        );
+          </>;
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background text-foreground">
+  return <div className="min-h-screen bg-background text-foreground">
       <Navigation activeSection={activeSection} setActiveSection={setActiveSection} />
       <main className="pt-20">
         {renderSection()}
       </main>
-    </div>
-  );
+    </div>;
 };
-
-const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string) => void }) => {
-  const sections = [
-    {
-      id: 'about',
-      title: 'About Me',
-      description: 'Learn about my academic journey and expertise',
-      icon: Users,
-    },
-    {
-      id: 'education',
-      title: 'Education',
-      description: 'My educational background and qualifications',
-      icon: GraduationCap,
-    },
-    {
-      id: 'projects',
-      title: 'Projects',
-      description: 'Academic and research projects I have accomplished',
-      icon: Briefcase,
-    },
-    {
-      id: 'courses',
-      title: 'Courses',
-      description: 'Courses I teach and offer to students',
-      icon: BookOpen,
-    },
-    {
-      id: 'research',
-      title: 'Research Papers',
-      description: 'Published research and academic publications',
-      icon: FileText,
-    },
-    {
-      id: 'openings',
-      title: 'Project Openings',
-      description: 'Available research opportunities for students',
-      icon: Book,
-    },
-    {
-      id: 'gallery',
-      title: 'Gallery',
-      description: 'Photos from conferences, meetings, and academic events',
-      icon: Camera,
-    },
-    {
-      id: 'contact',
-      title: 'Contact',
-      description: 'Get in touch for collaborations and inquiries',
-      icon: Mail,
-    },
-    {
-      id: 'blog',
-      title: 'Blog',
-      description: 'Insights, research updates, and thoughts on education',
-      icon: PenTool,
-    }
-  ];
-
-  return (
-    <div className="container mx-auto px-4 py-16">
+const HeroSection = ({
+  setActiveSection
+}: {
+  setActiveSection: (section: string) => void;
+}) => {
+  const sections = [{
+    id: 'about',
+    title: 'About Me',
+    description: 'Learn about my academic journey and expertise',
+    icon: Users
+  }, {
+    id: 'education',
+    title: 'Education',
+    description: 'My educational background and qualifications',
+    icon: GraduationCap
+  }, {
+    id: 'projects',
+    title: 'Projects',
+    description: 'Academic and research projects I have accomplished',
+    icon: Briefcase
+  }, {
+    id: 'courses',
+    title: 'Courses',
+    description: 'Courses I teach and offer to students',
+    icon: BookOpen
+  }, {
+    id: 'research',
+    title: 'Research Papers',
+    description: 'Published research and academic publications',
+    icon: FileText
+  }, {
+    id: 'openings',
+    title: 'Project Openings',
+    description: 'Available research opportunities for students',
+    icon: Book
+  }, {
+    id: 'gallery',
+    title: 'Gallery',
+    description: 'Photos from conferences, meetings, and academic events',
+    icon: Camera
+  }, {
+    id: 'contact',
+    title: 'Contact',
+    description: 'Get in touch for collaborations and inquiries',
+    icon: Mail
+  }, {
+    id: 'blog',
+    title: 'Blog',
+    description: 'Insights, research updates, and thoughts on education',
+    icon: PenTool
+  }];
+  return <div className="container mx-auto px-4 py-16">
       <div className="text-center mb-16">
-        <img 
-          src="/lovable-uploads/f4647ff3-b777-4579-abaa-37568921101b.png" 
-          alt="Guruprakash J [GJ] - Academic Portal"
-          className="w-full max-w-4xl mx-auto rounded-lg shadow-lg mb-6 animate-fade-in grayscale"
-        />
+        <img src="/lovable-uploads/f4647ff3-b777-4579-abaa-37568921101b.png" alt="Guruprakash J [GJ] - Academic Portal" className="w-full max-w-4xl mx-auto rounded-lg shadow-lg mb-6 animate-fade-in grayscale" />
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto animate-fade-in font-light" style={{
-          animationDelay: '0.2s',
-          animationFillMode: 'both'
-        }}>
-          Welcome to my academic portal. Explore my research, courses, and contributions to the field of education.
-        </p>
+        animationDelay: '0.2s',
+        animationFillMode: 'both'
+      }}>Welcome. Explore my research, courses, and contributions to the field of education.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {sections.map((section, index) => {
-          const IconComponent = section.icon;
-          return (
-            <Card
-              key={section.id}
-              className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in border-border hover:border-primary bg-card text-card-foreground"
-              style={{
-                animationDelay: `${0.4 + index * 0.1}s`,
-                animationFillMode: 'both'
-              }}
-              onClick={() => setActiveSection(section.id)}
-            >
+        const IconComponent = section.icon;
+        return <Card key={section.id} className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in border-border hover:border-primary bg-card text-card-foreground" style={{
+          animationDelay: `${0.4 + index * 0.1}s`,
+          animationFillMode: 'both'
+        }} onClick={() => setActiveSection(section.id)}>
               <CardHeader className="text-center">
                 <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:opacity-80">
                   <IconComponent className="w-8 h-8 text-primary-foreground transition-transform duration-300 group-hover:scale-110" />
@@ -158,12 +129,9 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
                   {section.description}
                 </CardDescription>
               </CardContent>
-            </Card>
-          );
-        })}
+            </Card>;
+      })}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
