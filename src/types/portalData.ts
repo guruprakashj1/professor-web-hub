@@ -128,7 +128,10 @@ export interface GalleryItem {
   id: string;
   title: string;
   description: string;
-  photo: string;
+  mediaType: 'photo' | 'video';
+  photo?: string;
+  video?: string;
+  uploadType: 'url' | 'upload';
   date: string;
   eventType: 'Meeting' | 'Conference' | 'Session' | 'Workshop' | 'Seminar' | 'Other';
   location: {

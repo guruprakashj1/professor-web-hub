@@ -1,4 +1,3 @@
-
 import { PortalData } from '@/types/portalData';
 
 // Simulate file-based storage using localStorage for this demo
@@ -74,6 +73,21 @@ export class FileStorageService {
         if (!data.gallery) {
           data.gallery = [];
         }
+        
+        // Update existing gallery items to new format for backward compatibility
+        data.gallery = data.gallery.map((item: any) => {
+          if (!item.mediaType) {
+            return {
+              ...item,
+              mediaType: 'photo',
+              uploadType: 'url',
+              photo: item.photo || '',
+              video: ''
+            };
+          }
+          return item;
+        });
+        
         // Ensure blogs array exists for backward compatibility
         if (!data.blogs) {
           data.blogs = [];
