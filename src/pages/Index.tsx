@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +37,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-white">
       <Navigation activeSection={activeSection} setActiveSection={setActiveSection} />
       <main className="pt-20">
         {renderSection()}
@@ -52,49 +53,42 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
       title: 'About Me',
       description: 'Learn about my academic journey and expertise',
       icon: Users,
-      color: 'bg-blue-500 hover:bg-blue-600'
     },
     {
       id: 'education',
       title: 'Education',
       description: 'My educational background and qualifications',
       icon: GraduationCap,
-      color: 'bg-indigo-500 hover:bg-indigo-600'
     },
     {
       id: 'projects',
       title: 'Projects',
       description: 'Academic and research projects I have accomplished',
       icon: Briefcase,
-      color: 'bg-purple-500 hover:bg-purple-600'
     },
     {
       id: 'courses',
       title: 'Courses',
       description: 'Courses I teach and offer to students',
       icon: BookOpen,
-      color: 'bg-green-500 hover:bg-green-600'
     },
     {
       id: 'research',
       title: 'Research Papers',
       description: 'Published research and academic publications',
       icon: FileText,
-      color: 'bg-orange-500 hover:bg-orange-600'
     },
     {
       id: 'openings',
       title: 'Project Openings',
       description: 'Available research opportunities for students',
       icon: Book,
-      color: 'bg-red-500 hover:bg-red-600'
     },
     {
       id: 'blog',
       title: 'Blog',
       description: 'Insights, research updates, and thoughts on education',
       icon: PenTool,
-      color: 'bg-teal-500 hover:bg-teal-600'
     }
   ];
 
@@ -104,9 +98,9 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
         <img 
           src="/lovable-uploads/f4647ff3-b777-4579-abaa-37568921101b.png" 
           alt="Guruprakash J [GJ] - Academic Portal"
-          className="w-full max-w-4xl mx-auto rounded-lg shadow-lg mb-6 animate-fade-in"
+          className="w-full max-w-4xl mx-auto rounded-lg shadow-lg mb-6 animate-fade-in grayscale"
         />
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in" style={{
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in font-light" style={{
           animationDelay: '0.2s',
           animationFillMode: 'both'
         }}>
@@ -120,7 +114,7 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
           return (
             <Card
               key={section.id}
-              className="group cursor-pointer transform transition-all duration-500 hover:scale-105 hover:shadow-xl animate-fade-in hover:rotate-1"
+              className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in border border-gray-200 hover:border-black bg-white"
               style={{
                 animationDelay: `${0.4 + index * 0.1}s`,
                 animationFillMode: 'both'
@@ -128,15 +122,15 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
               onClick={() => setActiveSection(section.id)}
             >
               <CardHeader className="text-center">
-                <div className={`w-16 h-16 rounded-full ${section.color} flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12`}>
+                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:bg-gray-800">
                   <IconComponent className="w-8 h-8 text-white transition-transform duration-300 group-hover:scale-110" />
                 </div>
-                <CardTitle className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
+                <CardTitle className="text-xl font-light text-gray-900 group-hover:text-black transition-colors duration-300">
                   {section.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-center text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
+                <CardDescription className="text-center text-gray-500 group-hover:text-gray-700 transition-colors duration-300 font-light">
                   {section.description}
                 </CardDescription>
               </CardContent>
