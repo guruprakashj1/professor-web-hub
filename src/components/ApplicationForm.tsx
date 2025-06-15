@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Upload, FileText } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 import { ApplicationStorageService } from '@/utils/applicationStorage';
 import { toast } from '@/hooks/use-toast';
+import FileUploadPreview from './admin/FileUploadPreview';
 
 interface ApplicationFormProps {
   opening: {
@@ -24,7 +25,7 @@ const ApplicationForm = ({ opening, onClose }: ApplicationFormProps) => {
     qualifications: '',
     portfolioUrl: ''
   });
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeFile, setResumeFile] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const applicationService = ApplicationStorageService.getInstance();
@@ -32,23 +33,6 @@ const ApplicationForm = ({ opening, onClose }: ApplicationFormProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        applicationService.validateResumeFile(file);
-        setResumeFile(file);
-      } catch (error) {
-        toast({
-          title: "Invalid File",
-          description: error instanceof Error ? error.message : "Invalid resume file",
-          variant: "destructive"
-        });
-        e.target.value = '';
-      }
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,13 +50,23 @@ const ApplicationForm = ({ opening, onClose }: ApplicationFormProps) => {
     setIsSubmitting(true);
 
     try {
+      // Convert data URL back to file if needed for the service
+      let fileToSubmit: File | undefined;
+      if (resumeFile && resumeFile.startsWith('data:')) {
+        // Create a mock file object for the service
+        const response = await fetch(resumeFile);
+        const blob = await response.blob();
+        fileToSubmit = new File([blob], 'resume.pdf', { type: blob.type });
+      }
+
       await applicationService.saveApplication(
         {
           openingId: opening.id,
           openingTitle: opening.title,
-          ...formData
+          ...formData,
+          resumeUrl: resumeFile // Store the data URL or URL
         },
-        resumeFile || undefined
+        fileToSubmit
       );
 
       toast({
@@ -178,52 +172,26 @@ const ApplicationForm = ({ opening, onClose }: ApplicationFormProps) => {
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
-                Resume Upload
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <label htmlFor="resume-upload" className="cursor-pointer">
-                  <div className="flex flex-col items-center space-y-2">
-                    {resumeFile ? (
-                      <>
-                        <FileText className="w-8 h-8 text-green-600" />
-                        <span className="text-sm font-medium text-green-600">
-                          {resumeFile.name}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({(resumeFile.size / 1024 / 1024).toFixed(1)} MB)
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-8 h-8 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-600">
-                          Click to upload your resume
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          PDF, DOC, or DOCX (max 5MB)
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </label>
-              </div>
-            </div>
+            <FileUploadPreview
+              label="Resume Upload"
+              value={resumeFile}
+              onChange={setResumeFile}
+              accept=".pdf,.doc,.docx"
+              maxSize={5}
+              previewClassName="w-full h-20"
+            />
 
             <div className="flex justify-end space-x-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                {isSubmitting ? 'Submitting...' : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit Application
+                  </>
+                )}
               </Button>
             </div>
           </form>
