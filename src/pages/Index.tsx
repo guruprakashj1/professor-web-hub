@@ -49,7 +49,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Navigation activeSection={activeSection} setActiveSection={setActiveSection} />
       <main className="pt-20">
         {renderSection()}
@@ -124,7 +124,7 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
           alt="Guruprakash J [GJ] - Academic Portal"
           className="w-full max-w-4xl mx-auto rounded-lg shadow-lg mb-6 animate-fade-in grayscale"
         />
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in font-light" style={{
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto animate-fade-in font-light" style={{
           animationDelay: '0.2s',
           animationFillMode: 'both'
         }}>
@@ -138,7 +138,7 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
           return (
             <Card
               key={section.id}
-              className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in border border-gray-200 hover:border-black bg-white"
+              className="group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in border-border hover:border-primary bg-card text-card-foreground"
               style={{
                 animationDelay: `${0.4 + index * 0.1}s`,
                 animationFillMode: 'both'
@@ -146,15 +146,15 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
               onClick={() => setActiveSection(section.id)}
             >
               <CardHeader className="text-center">
-                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:bg-gray-800">
-                  <IconComponent className="w-8 h-8 text-white transition-transform duration-300 group-hover:scale-110" />
+                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:opacity-80">
+                  <IconComponent className="w-8 h-8 text-primary-foreground transition-transform duration-300 group-hover:scale-110" />
                 </div>
-                <CardTitle className="text-xl font-light text-gray-900 group-hover:text-black transition-colors duration-300">
+                <CardTitle className="text-xl font-light text-card-foreground group-hover:text-primary transition-colors duration-300">
                   {section.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-center text-gray-500 group-hover:text-gray-700 transition-colors duration-300 font-light">
+                <CardDescription className="text-center text-muted-foreground group-hover:text-card-foreground transition-colors duration-300 font-light">
                   {section.description}
                 </CardDescription>
               </CardContent>
