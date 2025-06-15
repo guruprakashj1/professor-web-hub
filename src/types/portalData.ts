@@ -1,4 +1,3 @@
-
 export interface EducationItem {
   id: string;
   degree: string;
@@ -8,6 +7,7 @@ export interface EducationItem {
   description: string;
   advisor?: string;
   achievements: string[];
+  universityLogo?: string;
 }
 
 export interface Certification {

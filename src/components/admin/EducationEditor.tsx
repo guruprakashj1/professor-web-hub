@@ -9,6 +9,7 @@ import { usePortalData } from '@/hooks/usePortalData';
 import { EducationItem, Certification } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import FileUploadPreview from './FileUploadPreview';
 
 const EducationEditor = () => {
   const { data, createItem, updateItem, deleteItem } = usePortalData();
@@ -146,7 +147,8 @@ const EducationEditor = () => {
       location: '',
       description: '',
       advisor: '',
-      achievements: []
+      achievements: [],
+      universityLogo: ''
     });
     setEditingEducationId(null);
     setShowAddEducationForm(true);
@@ -253,6 +255,17 @@ const EducationEditor = () => {
                   />
                 </div>
               </div>
+
+              {/* University Logo Upload */}
+              <FileUploadPreview
+                label="University Logo"
+                value={educationFormData.universityLogo || ''}
+                onChange={(value) => setEducationFormData({ ...educationFormData, universityLogo: value || '' })}
+                accept="image/*"
+                maxSize={5}
+                showUrlInput={true}
+                previewClassName="w-24 h-24"
+              />
               
               <div>
                 <label className="text-sm font-medium">Description</label>
@@ -329,21 +342,37 @@ const EducationEditor = () => {
             <Card key={item.id}>
               <CardContent className="p-4">
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-lg">{item.degree}</h4>
-                    <p className="text-blue-600 font-medium">{item.institution}</p>
-                    <p className="text-gray-600">{item.year} • {item.location}</p>
-                    <p className="text-gray-700 mt-2">{item.description}</p>
-                    {item.advisor && <p className="text-gray-600 mt-1"><strong>Advisor:</strong> {item.advisor}</p>}
-                    {item.achievements.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {item.achievements.map((achievement, index) => (
-                          <span key={index} className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                            {achievement}
-                          </span>
-                        ))}
+                  <div className="flex gap-4 flex-1">
+                    {/* University Logo Display */}
+                    {item.universityLogo && (
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src={item.universityLogo} 
+                          alt={`${item.institution} logo`}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
                       </div>
                     )}
+                    
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg">{item.degree}</h4>
+                      <p className="text-blue-600 font-medium">{item.institution}</p>
+                      <p className="text-gray-600">{item.year} • {item.location}</p>
+                      <p className="text-gray-700 mt-2">{item.description}</p>
+                      {item.advisor && <p className="text-gray-600 mt-1"><strong>Advisor:</strong> {item.advisor}</p>}
+                      {item.achievements.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {item.achievements.map((achievement, index) => (
+                            <span key={index} className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                              {achievement}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex space-x-2 ml-4">
                     <Button variant="outline" size="sm" onClick={() => startEditEducation(item)}>

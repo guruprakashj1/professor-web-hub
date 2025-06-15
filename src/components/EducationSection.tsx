@@ -48,9 +48,26 @@ const EducationSection = () => {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
-                          <GraduationCap className="w-6 h-6 text-white" />
-                        </div>
+                        {edu.universityLogo ? (
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                            <img 
+                              src={edu.universityLogo} 
+                              alt={`${edu.institution} logo`}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                            <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center hidden">
+                              <GraduationCap className="w-6 h-6 text-white" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                            <GraduationCap className="w-6 h-6 text-white" />
+                          </div>
+                        )}
                         <div>
                           <CardTitle className="text-xl text-black font-light">{edu.degree}</CardTitle>
                           <p className="text-lg font-light text-gray-800">{edu.institution}</p>
