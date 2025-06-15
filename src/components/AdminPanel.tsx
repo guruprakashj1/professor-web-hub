@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool } from 'lucide-react';
+import { X, User, GraduationCap, Briefcase, BookOpen, FileText, Users, Download, Upload, RotateCcw, PenTool, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,7 @@ import CoursesEditor from './admin/CoursesEditor';
 import ResearchEditor from './admin/ResearchEditor';
 import OpeningsEditor from './admin/OpeningsEditor';
 import BlogsEditor from './admin/BlogsEditor';
+import GalleryEditor from './admin/GalleryEditor';
 import { usePortalData } from '@/hooks/usePortalData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -162,6 +163,10 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Openings</span>
               </TabsTrigger>
+              <TabsTrigger value="gallery" className="flex items-center gap-2">
+                <Camera className="w-4 h-4" />
+                <span className="hidden sm:inline">Gallery</span>
+              </TabsTrigger>
               <TabsTrigger value="blog" className="flex items-center gap-2">
                 <PenTool className="w-4 h-4" />
                 <span className="hidden sm:inline">Blog</span>
@@ -186,6 +191,9 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
               </TabsContent>
               <TabsContent value="openings" className="mt-0">
                 <OpeningsEditor />
+              </TabsContent>
+              <TabsContent value="gallery" className="mt-0">
+                <GalleryEditor />
               </TabsContent>
               <TabsContent value="blog" className="mt-0">
                 <BlogsEditor />

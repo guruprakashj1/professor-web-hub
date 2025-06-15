@@ -124,6 +124,21 @@ export interface BlogPost {
   readingTime: number;
 }
 
+export interface GalleryItem {
+  id: string;
+  title: string;
+  description: string;
+  photo: string;
+  date: string;
+  eventType: 'Meeting' | 'Conference' | 'Session' | 'Workshop' | 'Seminar' | 'Other';
+  location: {
+    name: string;
+    latitude?: number;
+    longitude?: number;
+  };
+  tags: string[];
+}
+
 export interface AboutInfo {
   name: string;
   title: string;
@@ -153,4 +168,5 @@ export interface PortalData {
   research: ResearchPaper[];
   openings: ProjectOpening[];
   blogs: BlogPost[];
+  gallery: GalleryItem[];
 }

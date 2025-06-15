@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool } from 'lucide-react';
+import { Book, GraduationCap, Users, FileText, Briefcase, BookOpen, PenTool, Camera } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Navigation from '@/components/Navigation';
@@ -11,6 +11,7 @@ import CoursesSection from '@/components/CoursesSection';
 import ResearchSection from '@/components/ResearchSection';
 import OpeningsSection from '@/components/OpeningsSection';
 import BlogSection from '@/components/BlogSection';
+import GallerySection from '@/components/GallerySection';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
@@ -29,6 +30,8 @@ const Index = () => {
         return <ResearchSection />;
       case 'openings':
         return <OpeningsSection />;
+      case 'gallery':
+        return <GallerySection />;
       case 'blog':
         return <BlogSection />;
       default:
@@ -83,6 +86,12 @@ const HeroSection = ({ setActiveSection }: { setActiveSection: (section: string)
       title: 'Project Openings',
       description: 'Available research opportunities for students',
       icon: Book,
+    },
+    {
+      id: 'gallery',
+      title: 'Gallery',
+      description: 'Photos from conferences, meetings, and academic events',
+      icon: Camera,
     },
     {
       id: 'blog',

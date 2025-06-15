@@ -50,7 +50,8 @@ const defaultData: PortalData = {
   courses: [],
   research: [],
   openings: [],
-  blogs: []
+  blogs: [],
+  gallery: []
 };
 
 export class FileStorageService {
@@ -69,6 +70,10 @@ export class FileStorageService {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const data = JSON.parse(stored);
+        // Ensure gallery array exists for backward compatibility
+        if (!data.gallery) {
+          data.gallery = [];
+        }
         // Ensure blogs array exists for backward compatibility
         if (!data.blogs) {
           data.blogs = [];
