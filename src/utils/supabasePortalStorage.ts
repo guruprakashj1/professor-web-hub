@@ -41,6 +41,7 @@ export class SupabasePortalStorageService {
           socialLinks: {}
         },
         education: [],
+        certifications: [],
         projects: [],
         courses: [],
         research: [],

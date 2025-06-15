@@ -82,6 +82,7 @@ export class SupabaseApplicationStorageService {
         portfolioUrl: data.portfolio_url || '',
         resumeFileName: data.resume_file_name || '',
         resumeUrl: data.resume_url || '',
+        resumePath: data.resume_path || '',
         applicationDate: data.application_date || new Date().toISOString(),
         status: data.status as ApplicationData['status']
       };
@@ -112,6 +113,7 @@ export class SupabaseApplicationStorageService {
         portfolioUrl: item.portfolio_url || '',
         resumeFileName: item.resume_file_name || '',
         resumeUrl: item.resume_url || '',
+        resumePath: item.resume_path || '',
         applicationDate: item.application_date || new Date().toISOString(),
         status: item.status as ApplicationData['status']
       }));
@@ -155,6 +157,7 @@ export class SupabaseApplicationStorageService {
         portfolioUrl: item.portfolio_url || '',
         resumeFileName: item.resume_file_name || '',
         resumeUrl: item.resume_url || '',
+        resumePath: item.resume_path || '',
         applicationDate: item.application_date || new Date().toISOString(),
         status: item.status as ApplicationData['status']
       }));
