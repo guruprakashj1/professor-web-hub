@@ -90,10 +90,6 @@ const FileUploadPreview = ({
                     <File className="w-8 h-8 text-gray-400" />
                   </div>
                 )}
-                
-                <div className="text-xs text-gray-600 break-all bg-gray-50 p-2 rounded">
-                  <strong>URL:</strong> {value}
-                </div>
               </div>
               
               <Button 
