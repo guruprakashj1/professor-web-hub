@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePortalData } from '@/hooks/usePortalData';
 import { AboutInfo } from '@/types/portalData';
 import { toast } from '@/hooks/use-toast';
-import { Save, Plus, X, Upload, User } from 'lucide-react';
+import { Save, Plus, X, Upload, User, Linkedin, Globe } from 'lucide-react';
 
 const AboutEditor = () => {
   const { data, updateAbout } = usePortalData();
@@ -97,6 +96,25 @@ const AboutEditor = () => {
     setFormData({
       ...formData,
       expertise: formData.expertise?.filter((_, i) => i !== index) || []
+    });
+  };
+
+  const updateSocialLink = (platform: string, url: string) => {
+    setFormData({
+      ...formData,
+      socialLinks: {
+        ...formData.socialLinks,
+        [platform]: url || undefined
+      }
+    });
+  };
+
+  const removeSocialLink = (platform: string) => {
+    const newSocialLinks = { ...formData.socialLinks };
+    delete newSocialLinks[platform as keyof typeof newSocialLinks];
+    setFormData({
+      ...formData,
+      socialLinks: newSocialLinks
     });
   };
 
@@ -263,6 +281,111 @@ const AboutEditor = () => {
                 })}
                 placeholder="Office hours"
               />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Social Links</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium flex items-center space-x-2">
+                <Linkedin className="w-4 h-4" />
+                <span>LinkedIn</span>
+              </label>
+              <div className="flex space-x-2">
+                <Input
+                  value={formData.socialLinks?.linkedin || ''}
+                  onChange={(e) => updateSocialLink('linkedin', e.target.value)}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                />
+                {formData.socialLinks?.linkedin && (
+                  <Button 
+                    onClick={() => removeSocialLink('linkedin')} 
+                    variant="outline" 
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium flex items-center space-x-2">
+                <Globe className="w-4 h-4" />
+                <span>ResearchGate</span>
+              </label>
+              <div className="flex space-x-2">
+                <Input
+                  value={formData.socialLinks?.researchGate || ''}
+                  onChange={(e) => updateSocialLink('researchGate', e.target.value)}
+                  placeholder="https://researchgate.net/profile/yourprofile"
+                />
+                {formData.socialLinks?.researchGate && (
+                  <Button 
+                    onClick={() => removeSocialLink('researchGate')} 
+                    variant="outline" 
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium flex items-center space-x-2">
+                <Globe className="w-4 h-4" />
+                <span>Google Scholar</span>
+              </label>
+              <div className="flex space-x-2">
+                <Input
+                  value={formData.socialLinks?.googleScholar || ''}
+                  onChange={(e) => updateSocialLink('googleScholar', e.target.value)}
+                  placeholder="https://scholar.google.com/citations?user=yourid"
+                />
+                {formData.socialLinks?.googleScholar && (
+                  <Button 
+                    onClick={() => removeSocialLink('googleScholar')} 
+                    variant="outline" 
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium flex items-center space-x-2">
+                <Globe className="w-4 h-4" />
+                <span>ORCID</span>
+              </label>
+              <div className="flex space-x-2">
+                <Input
+                  value={formData.socialLinks?.orcid || ''}
+                  onChange={(e) => updateSocialLink('orcid', e.target.value)}
+                  placeholder="https://orcid.org/0000-0000-0000-0000"
+                />
+                {formData.socialLinks?.orcid && (
+                  <Button 
+                    onClick={() => removeSocialLink('orcid')} 
+                    variant="outline" 
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
