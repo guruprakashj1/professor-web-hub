@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Menu, X, Home, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,14 +51,14 @@ const Navigation = ({
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
+      <nav className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-b border-border z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">GJ</span>
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">GJ</span>
               </div>
-              <span className="font-light text-xl text-gray-900">Guruprakash J [GJ]</span>
+              <span className="font-light text-xl text-foreground">Guruprakash J [GJ]</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -69,8 +70,8 @@ const Navigation = ({
                   onClick={() => setActiveSection(item.id)} 
                   className={`font-light ${
                     activeSection === item.id 
-                      ? "bg-black text-white hover:bg-gray-800" 
-                      : "text-gray-700 hover:text-black hover:bg-gray-100"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/80" 
+                      : "text-foreground hover:text-primary hover:bg-accent"
                   }`}
                 >
                   {item.label}
@@ -80,7 +81,7 @@ const Navigation = ({
                 variant="outline" 
                 size="sm" 
                 onClick={() => setShowAdminPanel(true)} 
-                className="ml-4 flex items-center space-x-1 border-gray-300 text-gray-700 hover:text-black hover:border-black"
+                className="ml-4 flex items-center space-x-1 border-border text-foreground hover:text-primary hover:border-primary"
               >
                 <Settings className="w-4 h-4" />
                 <span>Admin</span>
@@ -93,7 +94,7 @@ const Navigation = ({
                 variant="outline" 
                 size="sm" 
                 onClick={() => setShowAdminPanel(true)}
-                className="border-gray-300 text-gray-700 hover:text-black hover:border-black"
+                className="border-border text-foreground hover:text-primary hover:border-primary"
               >
                 <Settings className="w-4 h-4" />
               </Button>
@@ -101,7 +102,7 @@ const Navigation = ({
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-700 hover:text-black hover:bg-gray-100"
+                className="text-foreground hover:text-primary hover:bg-accent"
               >
                 {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
@@ -110,7 +111,7 @@ const Navigation = ({
 
           {/* Mobile Navigation */}
           {isMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
+            <div className="md:hidden py-4 border-t border-border">
               <div className="flex flex-col space-y-2">
                 {navItems.map(item => (
                   <Button 
@@ -122,8 +123,8 @@ const Navigation = ({
                     }} 
                     className={`justify-start font-light ${
                       activeSection === item.id 
-                        ? "bg-black text-white hover:bg-gray-800" 
-                        : "text-gray-700 hover:text-black hover:bg-gray-100"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/80" 
+                        : "text-foreground hover:text-primary hover:bg-accent"
                     }`}
                   >
                     {item.label}
