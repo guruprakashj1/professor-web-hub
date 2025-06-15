@@ -1,9 +1,8 @@
+
 import { PortalData } from '@/types/portalData';
 
-// Simulate file-based storage using localStorage for this demo
-// In a real implementation, this would interact with actual files or a file API
-
-const STORAGE_KEY = 'professor_portal_data';
+// File-based storage using JSON files in the public folder
+const DATA_FILE_URL = '/data/portal-data.json';
 
 // Default data structure
 const defaultData: PortalData = {
@@ -55,6 +54,7 @@ const defaultData: PortalData = {
 
 export class FileStorageService {
   private static instance: FileStorageService;
+  private cachedData: PortalData | null = null;
   
   public static getInstance(): FileStorageService {
     if (!FileStorageService.instance) {
@@ -63,57 +63,95 @@ export class FileStorageService {
     return FileStorageService.instance;
   }
 
-  // Load all data
-  public loadData(): PortalData {
+  // Load all data from JSON file
+  public async loadData(): Promise<PortalData> {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const data = JSON.parse(stored);
-        // Ensure gallery array exists for backward compatibility
-        if (!data.gallery) {
-          data.gallery = [];
-        }
-        
-        // Update existing gallery items to new format for backward compatibility
-        data.gallery = data.gallery.map((item: any) => {
-          if (!item.mediaType) {
-            return {
-              ...item,
-              mediaType: 'photo',
-              uploadType: 'url',
-              photo: item.photo || '',
-              video: ''
-            };
-          }
-          return item;
-        });
-        
-        // Ensure blogs array exists for backward compatibility
-        if (!data.blogs) {
-          data.blogs = [];
-        }
-        return data;
+      // Return cached data if available
+      if (this.cachedData) {
+        return this.cachedData;
       }
-      return defaultData;
+
+      const response = await fetch(DATA_FILE_URL);
+      if (!response.ok) {
+        console.warn('Could not load data file, using default data');
+        this.cachedData = defaultData;
+        return defaultData;
+      }
+      
+      const data = await response.json();
+      
+      // Ensure gallery array exists for backward compatibility
+      if (!data.gallery) {
+        data.gallery = [];
+      }
+      
+      // Update existing gallery items to new format for backward compatibility
+      data.gallery = data.gallery.map((item: any) => {
+        if (!item.mediaType) {
+          return {
+            ...item,
+            mediaType: 'photo',
+            uploadType: 'url',
+            photo: item.photo || '',
+            video: ''
+          };
+        }
+        return item;
+      });
+      
+      // Ensure blogs array exists for backward compatibility
+      if (!data.blogs) {
+        data.blogs = [];
+      }
+
+      this.cachedData = data;
+      return data;
     } catch (error) {
       console.error('Error loading data:', error);
+      this.cachedData = defaultData;
       return defaultData;
     }
   }
 
-  // Save all data
+  // Save data - in production this would need a backend API
   public saveData(data: PortalData): void {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data, null, 2));
-    } catch (error) {
-      console.error('Error saving data:', error);
-      throw new Error('Failed to save data');
-    }
+    this.cachedData = data;
+    console.log('Data updated in memory. In production, this would save to the JSON file via an API.');
+    console.log('Current data state:', JSON.stringify(data, null, 2));
+    
+    // Create downloadable JSON for manual update
+    this.createDownloadableJSON(data);
+  }
+
+  // Create a downloadable JSON file for manual updates
+  private createDownloadableJSON(data: PortalData): void {
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    // Create a temporary download link
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'portal-data.json';
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+    
+    console.log('Download triggered for updated portal-data.json. Replace the file in public/data/ and refresh the page.');
+  }
+
+  // Clear cache to force reload from file
+  public clearCache(): void {
+    this.cachedData = null;
   }
 
   // Generic CRUD operations
   public create<T extends { id: string }>(section: keyof PortalData, item: Omit<T, 'id'>): T {
-    const data = this.loadData();
+    const data = this.cachedData || defaultData;
     const newItem = { ...item, id: this.generateId() } as T;
     
     if (Array.isArray(data[section])) {
@@ -125,12 +163,12 @@ export class FileStorageService {
   }
 
   public read<T>(section: keyof PortalData): T {
-    const data = this.loadData();
+    const data = this.cachedData || defaultData;
     return data[section] as T;
   }
 
   public update<T extends { id: string }>(section: keyof PortalData, id: string, updates: Partial<T>): T | null {
-    const data = this.loadData();
+    const data = this.cachedData || defaultData;
     
     if (Array.isArray(data[section])) {
       const items = data[section] as T[];
@@ -147,7 +185,7 @@ export class FileStorageService {
   }
 
   public delete(section: keyof PortalData, id: string): boolean {
-    const data = this.loadData();
+    const data = this.cachedData || defaultData;
     
     if (Array.isArray(data[section])) {
       const items = data[section] as { id: string }[];
@@ -165,7 +203,7 @@ export class FileStorageService {
 
   // Update about section
   public updateAbout(updates: Partial<PortalData['about']>): PortalData['about'] {
-    const data = this.loadData();
+    const data = this.cachedData || defaultData;
     data.about = { ...data.about, ...updates };
     this.saveData(data);
     return data.about;
@@ -177,7 +215,7 @@ export class FileStorageService {
 
   // Export data to JSON file
   public exportData(): string {
-    const data = this.loadData();
+    const data = this.cachedData || defaultData;
     return JSON.stringify(data, null, 2);
   }
 

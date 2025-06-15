@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +15,7 @@ const BlogsEditor = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
   const blogStorage = BlogStorageService.getInstance();
@@ -24,13 +24,25 @@ const BlogsEditor = () => {
     loadBlogs();
   }, []);
 
-  const loadBlogs = () => {
-    const allBlogs = blogStorage.loadAllBlogs();
-    setBlogs(allBlogs.sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()));
-    console.log('Loaded all blogs for admin:', allBlogs);
+  const loadBlogs = async () => {
+    try {
+      setLoading(true);
+      const allBlogs = await blogStorage.loadAllBlogs();
+      setBlogs(allBlogs.sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()));
+      console.log('Loaded all blogs for admin:', allBlogs);
+    } catch (error) {
+      console.error('Error loading blogs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load blog posts.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = (blog: Omit<BlogPost, 'id' | 'lastModified'>) => {
+  const handleSave = async (blog: Omit<BlogPost, 'id' | 'lastModified'>) => {
     try {
       const readingTime = blogStorage.calculateReadingTime(blog.content);
       
@@ -41,7 +53,7 @@ const BlogsEditor = () => {
           readingTime,
           lastModified: new Date().toISOString()
         };
-        blogStorage.saveBlog(updatedBlog);
+        await blogStorage.saveBlog(updatedBlog);
         toast({
           title: "Blog Updated",
           description: "Blog post has been successfully updated.",
@@ -53,7 +65,7 @@ const BlogsEditor = () => {
           readingTime,
           lastModified: new Date().toISOString()
         };
-        blogStorage.saveBlog(newBlog);
+        await blogStorage.saveBlog(newBlog);
         toast({
           title: "Blog Created",
           description: "New blog post has been successfully created.",
@@ -62,7 +74,7 @@ const BlogsEditor = () => {
       
       setEditingBlog(null);
       setIsAdding(false);
-      loadBlogs();
+      await loadBlogs();
     } catch (error) {
       toast({
         title: "Error",
@@ -72,15 +84,15 @@ const BlogsEditor = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this blog post?')) {
       try {
-        blogStorage.deleteBlog(id);
+        await blogStorage.deleteBlog(id);
         toast({
           title: "Blog Deleted",
           description: "Blog post has been successfully deleted.",
         });
-        loadBlogs();
+        await loadBlogs();
       } catch (error) {
         toast({
           title: "Error",
@@ -108,6 +120,14 @@ const BlogsEditor = () => {
       day: 'numeric'
     });
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg font-light text-gray-900">Loading blogs...</div>
+      </div>
+    );
+  }
 
   if (isAdding || editingBlog) {
     return (

@@ -1,11 +1,11 @@
 
 import { ApplicationData } from '@/types/application';
 
-const STORAGE_KEY = 'opening_applications';
-const RESUME_FOLDER = 'resumes';
+const APPLICATIONS_FILE_URL = '/data/applications.json';
 
 export class ApplicationStorageService {
   private static instance: ApplicationStorageService;
+  private cachedApplications: ApplicationData[] | null = null;
   
   public static getInstance(): ApplicationStorageService {
     if (!ApplicationStorageService.instance) {
@@ -14,101 +14,110 @@ export class ApplicationStorageService {
     return ApplicationStorageService.instance;
   }
 
-  public saveApplication(
+  public async saveApplication(
     applicationData: Omit<ApplicationData, 'id' | 'applicationDate' | 'status' | 'resumePath' | 'resumeFileName'>,
     resumeFile?: File
   ): Promise<ApplicationData> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const applications = this.loadApplications();
-        let resumeFileName = '';
-        let resumePath = '';
+    try {
+      const applications = await this.loadApplications();
+      let resumeFileName = '';
+      let resumePath = '';
 
-        // Handle resume upload if provided
-        if (resumeFile) {
-          const timestamp = Date.now();
-          const extension = resumeFile.name.split('.').pop();
-          resumeFileName = `resume_${timestamp}.${extension}`;
-          resumePath = `${RESUME_FOLDER}/${resumeFileName}`;
-          
-          // Store resume file (in a real app, this would upload to cloud storage)
-          await this.saveResumeFile(resumeFile, resumeFileName);
-        }
-
-        const newApplication: ApplicationData = {
-          ...applicationData,
-          id: this.generateId(),
-          applicationDate: new Date().toISOString(),
-          status: 'pending',
-          resumeFileName,
-          resumePath
-        };
+      // Handle resume upload if provided
+      if (resumeFile) {
+        const timestamp = Date.now();
+        const extension = resumeFile.name.split('.').pop();
+        resumeFileName = `resume_${timestamp}.${extension}`;
+        resumePath = `resumes/${resumeFileName}`;
         
-        applications.push(newApplication);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
-        
-        console.log('Application saved:', newApplication);
-        resolve(newApplication);
-      } catch (error) {
-        console.error('Error saving application:', error);
-        reject(error);
+        // In production, this would upload to your file storage
+        console.log(`Resume would be saved to: ${resumePath}`);
       }
-    });
+
+      const newApplication: ApplicationData = {
+        ...applicationData,
+        id: this.generateId(),
+        applicationDate: new Date().toISOString(),
+        status: 'pending',
+        resumeFileName,
+        resumePath
+      };
+      
+      applications.push(newApplication);
+      this.saveAllApplications(applications);
+      
+      console.log('Application saved:', newApplication);
+      return newApplication;
+    } catch (error) {
+      console.error('Error saving application:', error);
+      throw error;
+    }
   }
 
-  public loadApplications(): ApplicationData[] {
+  public async loadApplications(): Promise<ApplicationData[]> {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      if (this.cachedApplications) {
+        return this.cachedApplications;
+      }
+
+      const response = await fetch(APPLICATIONS_FILE_URL);
+      if (!response.ok) {
+        console.warn('Could not load applications file');
+        this.cachedApplications = [];
+        return [];
+      }
+      
+      const applications = await response.json();
+      this.cachedApplications = applications;
+      return applications;
     } catch (error) {
       console.error('Error loading applications:', error);
+      this.cachedApplications = [];
       return [];
     }
   }
 
-  public getApplicationsByOpening(openingId: string): ApplicationData[] {
-    const applications = this.loadApplications();
+  private saveAllApplications(applications: ApplicationData[]): void {
+    this.cachedApplications = applications;
+    console.log('Applications updated in memory. Download the updated JSON file to replace public/data/applications.json');
+    this.createDownloadableJSON(applications);
+  }
+
+  private createDownloadableJSON(applications: ApplicationData[]): void {
+    const dataStr = JSON.stringify(applications, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'applications.json';
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+  }
+
+  public async getApplicationsByOpening(openingId: string): Promise<ApplicationData[]> {
+    const applications = await this.loadApplications();
     return applications.filter(app => app.openingId === openingId);
   }
 
-  public updateApplicationStatus(id: string, status: ApplicationData['status']): void {
-    const applications = this.loadApplications();
+  public async updateApplicationStatus(id: string, status: ApplicationData['status']): Promise<void> {
+    const applications = await this.loadApplications();
     const application = applications.find(app => app.id === id);
     if (application) {
       application.status = status;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
+      this.saveAllApplications(applications);
     }
   }
 
-  public deleteApplication(id: string): void {
-    const applications = this.loadApplications();
+  public async deleteApplication(id: string): Promise<void> {
+    const applications = await this.loadApplications();
     const filteredApplications = applications.filter(app => app.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredApplications));
-  }
-
-  private async saveResumeFile(file: File, fileName: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        // Store the resume file info in localStorage for demo purposes
-        const resumeFiles = JSON.parse(localStorage.getItem('resume_files') || '{}');
-        resumeFiles[fileName] = {
-          path: `${RESUME_FOLDER}/${fileName}`,
-          dataUrl: dataUrl,
-          uploadedAt: new Date().toISOString(),
-          originalName: file.name,
-          size: file.size,
-          type: file.type
-        };
-        localStorage.setItem('resume_files', JSON.stringify(resumeFiles));
-        
-        console.log(`Resume uploaded: ${RESUME_FOLDER}/${fileName}`);
-        resolve();
-      };
-      reader.onerror = () => reject(new Error('Failed to read resume file'));
-      reader.readAsDataURL(file);
-    });
+    this.saveAllApplications(filteredApplications);
   }
 
   public validateResumeFile(file: File): boolean {
@@ -129,6 +138,10 @@ export class ApplicationStorageService {
     }
     
     return true;
+  }
+
+  public clearCache(): void {
+    this.cachedApplications = null;
   }
 
   private generateId(): string {

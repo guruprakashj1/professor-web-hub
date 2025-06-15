@@ -10,13 +10,13 @@ export const usePortalData = () => {
   
   const storage = FileStorageService.getInstance();
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const portalData = storage.loadData();
+      const portalData = await storage.loadData();
       setData(portalData);
       setError(null);
-      console.log('Data loaded:', portalData);
+      console.log('Data loaded from JSON file:', portalData);
     } catch (err) {
       setError('Failed to load data');
       console.error(err);
@@ -29,16 +29,24 @@ export const usePortalData = () => {
     loadData();
   }, [loadData]);
 
-  const refreshData = useCallback(() => {
-    console.log('Refreshing data...');
-    loadData();
-  }, [loadData]);
+  const refreshData = useCallback(async () => {
+    console.log('Refreshing data from JSON file...');
+    storage.clearCache();
+    await loadData();
+  }, [loadData, storage]);
 
   const createItem = <T extends { id: string }>(section: keyof PortalData, item: Omit<T, 'id'>) => {
     try {
       const newItem = storage.create<T>(section, item);
       console.log('Item created:', newItem);
-      refreshData();
+      // Update local state immediately
+      if (data) {
+        const updatedData = { ...data };
+        if (Array.isArray(updatedData[section])) {
+          (updatedData[section] as T[]).push(newItem);
+        }
+        setData(updatedData);
+      }
       return newItem;
     } catch (err) {
       setError('Failed to create item');
@@ -50,7 +58,18 @@ export const usePortalData = () => {
     try {
       const updatedItem = storage.update<T>(section, id, updates);
       console.log('Item updated:', updatedItem);
-      refreshData();
+      // Update local state immediately
+      if (data && updatedItem) {
+        const updatedData = { ...data };
+        if (Array.isArray(updatedData[section])) {
+          const items = updatedData[section] as T[];
+          const index = items.findIndex(item => item.id === id);
+          if (index !== -1) {
+            items[index] = updatedItem;
+          }
+        }
+        setData(updatedData);
+      }
       return updatedItem;
     } catch (err) {
       setError('Failed to update item');
@@ -62,7 +81,15 @@ export const usePortalData = () => {
     try {
       const success = storage.delete(section, id);
       console.log('Item deleted:', { section, id, success });
-      refreshData();
+      // Update local state immediately
+      if (data && success) {
+        const updatedData = { ...data };
+        if (Array.isArray(updatedData[section])) {
+          const items = updatedData[section] as { id: string }[];
+          updatedData[section] = items.filter(item => item.id !== id) as any;
+        }
+        setData(updatedData);
+      }
       return success;
     } catch (err) {
       setError('Failed to delete item');
@@ -74,7 +101,10 @@ export const usePortalData = () => {
     try {
       const updatedAbout = storage.updateAbout(updates);
       console.log('About updated:', updatedAbout);
-      refreshData();
+      // Update local state immediately
+      if (data) {
+        setData({ ...data, about: updatedAbout });
+      }
       return updatedAbout;
     } catch (err) {
       setError('Failed to update about section');

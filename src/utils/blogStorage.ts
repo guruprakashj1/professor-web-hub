@@ -1,11 +1,12 @@
 
 import { BlogPost } from '@/types/portalData';
 
-// Blog-specific storage utility
-const BLOG_FOLDER_KEY = 'professor_portal_blogs';
+// Blog-specific storage utility using JSON files
+const BLOG_FILE_URL = '/data/portal-data.json';
 
 export class BlogStorageService {
   private static instance: BlogStorageService;
+  private cachedBlogs: BlogPost[] | null = null;
   
   public static getInstance(): BlogStorageService {
     if (!BlogStorageService.instance) {
@@ -14,39 +15,90 @@ export class BlogStorageService {
     return BlogStorageService.instance;
   }
 
-  // Load all blog posts
-  public loadAllBlogs(): BlogPost[] {
+  // Load all blog posts from the main data file
+  public async loadAllBlogs(): Promise<BlogPost[]> {
     try {
-      const stored = localStorage.getItem(BLOG_FOLDER_KEY);
-      if (stored) {
-        return JSON.parse(stored);
+      if (this.cachedBlogs) {
+        return this.cachedBlogs;
       }
-      return [];
+
+      const response = await fetch(BLOG_FILE_URL);
+      if (!response.ok) {
+        console.warn('Could not load data file');
+        this.cachedBlogs = [];
+        return [];
+      }
+      
+      const data = await response.json();
+      this.cachedBlogs = data.blogs || [];
+      return this.cachedBlogs;
     } catch (error) {
       console.error('Error loading blogs:', error);
+      this.cachedBlogs = [];
       return [];
     }
   }
 
-  // Save all blog posts
+  // Save all blog posts - creates downloadable file in development
   public saveAllBlogs(blogs: BlogPost[]): void {
+    this.cachedBlogs = blogs;
+    console.log('Blogs updated in memory. Download the updated JSON file to replace public/data/portal-data.json');
+    
+    // In a real deployment, this would save to the file via an API
+    this.createDownloadableJSON(blogs);
+  }
+
+  // Create downloadable JSON for manual update
+  private async createDownloadableJSON(blogs: BlogPost[]): Promise<void> {
     try {
-      localStorage.setItem(BLOG_FOLDER_KEY, JSON.stringify(blogs, null, 2));
+      // Load current data and update blogs section
+      const response = await fetch(BLOG_FILE_URL);
+      let fullData = {
+        about: {},
+        education: [],
+        certifications: [],
+        projects: [],
+        courses: [],
+        research: [],
+        openings: [],
+        blogs: [],
+        gallery: []
+      };
+      
+      if (response.ok) {
+        fullData = await response.json();
+      }
+      
+      fullData.blogs = blogs;
+      
+      const dataStr = JSON.stringify(fullData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'portal-data.json';
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error saving blogs:', error);
-      throw new Error('Failed to save blogs');
+      console.error('Error creating downloadable JSON:', error);
     }
   }
 
   // Load single blog post
-  public loadBlog(id: string): BlogPost | null {
-    const blogs = this.loadAllBlogs();
+  public async loadBlog(id: string): Promise<BlogPost | null> {
+    const blogs = await this.loadAllBlogs();
     return blogs.find(blog => blog.id === id) || null;
   }
 
   // Save single blog post
-  public saveBlog(blog: BlogPost): BlogPost {
-    const blogs = this.loadAllBlogs();
+  public async saveBlog(blog: BlogPost): Promise<BlogPost> {
+    const blogs = await this.loadAllBlogs();
     const existingIndex = blogs.findIndex(b => b.id === blog.id);
     
     if (existingIndex >= 0) {
@@ -60,8 +112,8 @@ export class BlogStorageService {
   }
 
   // Delete blog post
-  public deleteBlog(id: string): boolean {
-    const blogs = this.loadAllBlogs();
+  public async deleteBlog(id: string): Promise<boolean> {
+    const blogs = await this.loadAllBlogs();
     const filteredBlogs = blogs.filter(blog => blog.id !== id);
     
     if (filteredBlogs.length !== blogs.length) {
@@ -73,8 +125,8 @@ export class BlogStorageService {
   }
 
   // Search blogs
-  public searchBlogs(query: string): BlogPost[] {
-    const blogs = this.loadAllBlogs();
+  public async searchBlogs(query: string): Promise<BlogPost[]> {
+    const blogs = await this.loadAllBlogs();
     const lowercaseQuery = query.toLowerCase();
     
     return blogs.filter(blog => 
@@ -88,10 +140,16 @@ export class BlogStorageService {
   }
 
   // Get published blogs
-  public getPublishedBlogs(): BlogPost[] {
-    return this.loadAllBlogs()
+  public async getPublishedBlogs(): Promise<BlogPost[]> {
+    const blogs = await this.loadAllBlogs();
+    return blogs
       .filter(blog => blog.status === 'Published')
       .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
+  }
+
+  // Clear cache
+  public clearCache(): void {
+    this.cachedBlogs = null;
   }
 
   // Calculate reading time
@@ -107,8 +165,8 @@ export class BlogStorageService {
   }
 
   // Get all keywords
-  public getAllKeywords(): string[] {
-    const blogs = this.getPublishedBlogs();
+  public async getAllKeywords(): Promise<string[]> {
+    const blogs = await this.getPublishedBlogs();
     const keywordSet = new Set<string>();
     
     blogs.forEach(blog => {

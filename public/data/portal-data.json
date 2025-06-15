@@ -1,0 +1,47 @@
+
+{
+  "about": {
+    "name": "Dr. Jane Smith",
+    "title": "Professor of Computer Science",
+    "bio": "Experienced educator and researcher with expertise in machine learning, artificial intelligence, and educational technology.",
+    "expertise": ["Machine Learning", "Artificial Intelligence", "Educational Technology", "Data Science"],
+    "contact": {
+      "email": "jane.smith@university.edu",
+      "phone": "+1 (555) 123-4567",
+      "office": "Room 405, CS Building",
+      "officeHours": "Tuesdays and Thursdays, 2:00 PM - 4:00 PM"
+    },
+    "socialLinks": {
+      "linkedin": "https://linkedin.com/in/drjanesmith",
+      "researchGate": "https://researchgate.net/profile/Jane_Smith",
+      "googleScholar": "https://scholar.google.com/citations?user=abc123",
+      "orcid": "https://orcid.org/0000-0000-0000-0000"
+    }
+  },
+  "education": [
+    {
+      "id": "1",
+      "degree": "Ph.D. in Computer Science",
+      "institution": "Stanford University",
+      "year": "2008",
+      "location": "Stanford, CA",
+      "description": "Dissertation: \"Advanced Machine Learning Algorithms for Educational Applications\"",
+      "advisor": "Dr. Jane Smith",
+      "achievements": ["Summa Cum Laude", "Outstanding Dissertation Award", "Teaching Excellence Award"]
+    }
+  ],
+  "certifications": [
+    {
+      "id": "1",
+      "title": "Certified Data Scientist",
+      "organization": "Data Science Council of America",
+      "year": "2020"
+    }
+  ],
+  "projects": [],
+  "courses": [],
+  "research": [],
+  "openings": [],
+  "blogs": [],
+  "gallery": []
+}
